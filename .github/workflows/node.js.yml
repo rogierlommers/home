@@ -1,7 +1,6 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# playlist example: https://github.com/playlist-exchange/playlist-exchange/blob/main/.github/workflows/docker-image.yml
 
-name: Node.js CI
+name: quick-note
 
 on:
   push:
@@ -10,14 +9,28 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
 
+  # run-all-tests:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: list files
+  #       run: |
+  #         ls -lhr .
+  #     - name: run development environment
+  #       run: docker compose --env-file .env-dev -f docker-compose.yml -f docker-compose.dev.yml up --detach
+
+  #     - name: run actual tests
+  #       run: docker compose exec --no-TTY backend /app/scripts/tests-start.sh
+
+
+  build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        node-version: [18.x]
 
     steps:
     - uses: actions/checkout@v3
