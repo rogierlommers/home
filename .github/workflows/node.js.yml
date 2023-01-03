@@ -10,7 +10,7 @@ on:
 
 jobs:
 
-  build:
+  build-frontend:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,3 +37,23 @@ jobs:
       with:
         name: dist-folder
         path: ./frontend/dist
+
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+
+      - name: Build
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/quick-note ./backend/*.go
+
+      - name: List files in ./bin directory
+        run: |
+          ls -lhr ./bin
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: compiled-binary
+          path: ./bin/quick-note
