@@ -33,7 +33,7 @@ jobs:
       run: |
         ls -lhr ./frontend/dist
 
-    - uses: actions/upload-artifact@master
+    - uses: actions/upload-artifact@main
       with:
         name: dist-folder
         path: ./frontend/dist
