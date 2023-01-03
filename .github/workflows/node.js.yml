@@ -32,3 +32,8 @@ jobs:
     - name: (after) list files in dist
       run: |
         ls -lhr ./frontend/dist
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: dist-folder
+        path: ./frontend/dist
