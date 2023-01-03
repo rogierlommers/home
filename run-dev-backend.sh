@@ -1,4 +1,5 @@
 #!/bin/bash
 
 echo "running backend..."
-go run ./backend/*.go
+
+DIST_DIRECTORY="${PWD}/frontend/dist" go run ./backend/*.go

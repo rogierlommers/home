@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -40,6 +41,9 @@ func sendMailHandler(c *gin.Context) {
 }
 
 func main() {
+	staticDir := os.Getenv("DIST_DIRECTORY")
+	logrus.Infof("static folder: %s", staticDir)
+
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
