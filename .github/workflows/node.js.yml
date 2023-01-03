@@ -31,4 +31,4 @@ jobs:
 
     - name: (after) list files in dist
       run: |
-        ls -lhr ./dist
+        ls -lhr ./frontend/dist
