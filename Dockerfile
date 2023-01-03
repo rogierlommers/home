@@ -3,8 +3,8 @@ LABEL description="Quick-notes from Rogier Lommers"
 LABEL maintainer="Rogier Lommers <rogier@lommers.org>"
 
 # add binary and assets
-COPY --chown=1000:1000 /target/quick-note/quick-note /app/quick-note/quick-note
-COPY --chown=1000:1000 .target/dist /app/dist
+COPY --chown=1000:1000 /home/runner/work/quick-note/quick-note/bin/quick-note/quick-note /app/quick-note
+COPY --chown=1000:1000 /home/runner/work/quick-note/quick-note/bin/dist /app/dist
 
 # binary will serve on 8080
 EXPOSE 8080
@@ -13,7 +13,7 @@ EXPOSE 8080
 RUN chmod +x /bin/quick-note/quick-note
 
 # set default dist directory
-ENV DIST_DIRECTORY "/bin/dist"
+ENV DIST_DIRECTORY "/app/dist"
 
 # run binary
-CMD ["/bin/quick-note"]
+CMD ["/app/quick-note/quick-note"]
