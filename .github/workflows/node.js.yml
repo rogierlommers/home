@@ -60,7 +60,9 @@ jobs:
 
   build-and-push-image:
     runs-on: ubuntu-latest
-    needs: build-binary
+    needs:
+      - build-frontend
+      - build-backend
     steps:
       - uses: actions/checkout@v3
 
