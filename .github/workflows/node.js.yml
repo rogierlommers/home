@@ -78,7 +78,7 @@ jobs:
 
       - name: List files in ./bin directory
         run: |
-          ls -lhr ./bin
+          ls -lhrR ./bin
 
       - name: List files in current directory
         run: |
