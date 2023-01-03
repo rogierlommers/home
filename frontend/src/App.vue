@@ -34,7 +34,7 @@ export default {
   methods: {
     sendMail() {
 
-      axios.post("http://localhost:3000/api/send", {
+      axios.post("http://quick-note.lommers.org/api/send", {
         text: this.sendText,
         output: 'json',
       })
@@ -49,4 +49,3 @@ export default {
   }
 }
 </script>
-
