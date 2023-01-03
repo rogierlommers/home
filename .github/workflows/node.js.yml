@@ -21,10 +21,6 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 
-    - name: (before) list files in dist
-      run: |
-        ls -lhr ./dist
-
     - name: Run CI
       working-directory: ./frontend
       run: npm ci
