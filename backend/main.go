@@ -56,6 +56,8 @@ func main() {
 
 	router.POST("/api/send", sendMailHandler)
 
+	router.Static("/", staticDir)
+
 	if err := http.ListenAndServe(":3000", router); err != nil {
 		logrus.Fatal(err)
 	}
