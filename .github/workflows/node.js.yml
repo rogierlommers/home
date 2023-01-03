@@ -33,10 +33,6 @@ jobs:
       working-directory: ./frontend
       run: npm run build
 
-    - name: Run build
-      working-directory: ./frontend
-      run: npm run build
-
     - name: (after) list files in dist
       run: |
         ls -lhr ./dist
