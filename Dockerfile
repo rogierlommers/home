@@ -10,10 +10,10 @@ COPY --chown=1000:1000 ./bin/dist /app/dist
 EXPOSE 8080
 
 # make binary executable
-RUN chmod +x /bin/quick-note/quick-note
+RUN chmod +x /app/quick-note
 
 # set default dist directory
 ENV DIST_DIRECTORY "/app/dist"
 
 # run binary
-CMD ["/app/quick-note/quick-note"]
+CMD ["/app/quick-note"]
