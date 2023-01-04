@@ -35,7 +35,7 @@ export default {
     sendMail() {
 
       axios.post("https://quick-note.lommers.org/api/send", {
-        text: this.sendText,
+        todo: this.sendText,
         output: 'json',
       })
         .then((response) => {

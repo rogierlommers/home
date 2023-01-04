@@ -1,50 +1,33 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"github.com/rogierlommers/quick-note/backend/api"
+	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/rogierlommers/quick-note/backend/mailer"
 )
 
-type MailResponse struct {
-	StatusText string `json:"status_text"`
-}
-
-type MailRequest struct {
-	Text string `json:"text"`
-}
-
-func sendMailHandler(c *gin.Context) {
-	var decodedRequest MailRequest
-
-	// Try to decode the request into the thumbnailRequest struct.
-	err := json.NewDecoder(c.Request.Body).Decode(&decodedRequest)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	// do something with decodedRequest
-
-	// write response
-	mailResponse := MailResponse{
-		StatusText: fmt.Sprintf("succesfully emailed: %d bytes", len(decodedRequest.Text)),
-	}
-
-	c.JSON(200, mailResponse)
-}
-
 func main() {
-	staticDir := os.Getenv("DIST_DIRECTORY")
-	logrus.Infof("static folder: %s", staticDir)
 
-	router := gin.Default()
+	// read config and make globally available
+	cfg.ReadConfig()
+
+	// gin mode
+	if cfg.Settings.Mode == "PRO" || cfg.Settings.Mode == "PRODUCTION" {
+		log.Println("enabling production mode")
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	// create mailer instance
+	m := mailer.NewMailer()
+
+	// create router
+	router := gin.New()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"POST", "PATCH"},
@@ -54,12 +37,12 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	router.POST("/api/send", sendMailHandler)
+	// add routers
+	api.AddRoutes(router, m)
 
-	router.Static("/", staticDir)
-
+	// start serving
 	if err := http.ListenAndServe(":3000", router); err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 
 }
