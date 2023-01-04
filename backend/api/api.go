@@ -19,9 +19,11 @@ import (
 // https://stackoverflow.com/questions/34046194/how-to-pass-arguments-to-router-handlers-in-golang-using-gin-web-framework
 
 func AddRoutes(router *gin.Engine, m mailer.Mailer) {
+
 	router.POST("/api/send", sendMailHandler)
 	router.GET("/api/info", sendInfoHandler)
 	router.Static("/static", cfg.Settings.StaticDir)
+
 }
 
 func sendMailHandler(c *gin.Context) {
@@ -59,6 +61,7 @@ func sendMailHandler(c *gin.Context) {
 
 	// write happy flow response
 	c.JSON(200, response{Msg: fmt.Sprintf("succesfully emailed: %d bytes", len(i.TodoItem))})
+
 }
 
 func sendInfoHandler(c *gin.Context) {
@@ -70,4 +73,5 @@ func sendInfoHandler(c *gin.Context) {
 	c.JSON(200, response{
 		Version: cfg.Settings.BackendVersion,
 	})
+
 }
