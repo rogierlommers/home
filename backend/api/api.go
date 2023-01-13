@@ -27,6 +27,8 @@ func AddRoutes(router *gin.Engine, m mailer.Mailer) {
 }
 
 func sendMailHandler(c *gin.Context) {
+	// log
+	log.Print("incoming request")
 
 	// incoming body
 	type incoming struct {
