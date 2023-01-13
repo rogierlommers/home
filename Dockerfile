@@ -14,7 +14,6 @@ RUN chmod +x /app/quick-note
 
 # set default dist directory
 ENV DIST_DIRECTORY "/app/dist"
-ENV VUE_APP_API_HOST "http://localhost"
 
 # run binary
 CMD ["/app/quick-note"]
