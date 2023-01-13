@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       sendText: '',
-      serverResponse: '#response',
+      serverResponse: `${Config.apiHostname}`,
     }
   },
 
