@@ -12,7 +12,7 @@
           <div class="form-group">
             <button class="btn btn-primary">Send!</button>
           </div>
-          <span v-html="sendResponse"></span>
+          <span v-html="serverResponse"></span>
         </form>
       </div>
     </div>
@@ -21,28 +21,33 @@
 
 <script>
 import axios from 'axios';
+import { Config } from './config';
 export default {
   name: 'App',
 
   data() {
     return {
       sendText: '',
-      sendResponse: '',
+      serverResponse: '#response',
     }
   },
 
   methods: {
     sendMail() {
 
-      axios.post("https://quick-note.lommers.org/api/send", {
-        todo: this.sendText,
+      axios({
+        url: `${Config.apiHostname}`,
+        method: "POST",
         output: 'json',
+        data: {
+          todo: this.sendText}
       })
         .then((response) => {
-          this.sendResponse = response.data.status_text;
+          this.serverResponse = response.data.msg;
         })
         .catch((error) => {
-          this.sendResponse = `Error: ${error}`
+          // console.log(error)
+          this.serverResponse = `Error: ${error}<br/>${error.response.data.msg}`
         })
 
     }
