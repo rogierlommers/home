@@ -40,10 +40,14 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
+	logrus.Info("start resize")
 	dstImage := imaging.Resize(img, 600, 0, imaging.Lanczos)
 
+	logrus.Info("start cropanchor")
+	croppedImage := imaging.CropAnchor(dstImage, 300, 300, imaging.TopLeft)
+
 	buf := new(bytes.Buffer)
-	if err := imaging.Encode(buf, dstImage, imaging.JPEG); err != nil {
+	if err := imaging.Encode(buf, croppedImage, imaging.JPEG); err != nil {
 		return "", err
 	}
 
