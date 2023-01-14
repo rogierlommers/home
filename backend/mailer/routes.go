@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,25 +29,21 @@ func (m Mailer) sendMailHandler(c *gin.Context) {
 	// Try to decode the request into the thumbnailRequest struct.
 	var i incoming
 	if err := json.NewDecoder(c.Request.Body).Decode(&i); err == io.EOF {
-		log.Println("test1")
 		c.JSON(http.StatusInternalServerError, response{Msg: "error: EOF detected"})
 		return
 	} else if err != nil {
-		log.Println("test2")
 		c.JSON(http.StatusInternalServerError, response{Msg: err.Error()})
 		return
 	}
 
 	// validate incoming message
 	if len(i.TodoItem) == 0 {
-		log.Println("test3")
 		c.JSON(http.StatusInternalServerError, response{Msg: "error: empty todo-item detected"})
 		return
 	}
 
 	// do something todo item
 	if err := m.SendMail(i.TodoItem); err != nil {
-		log.Println("test4")
 		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err.Error())})
 		return
 	}

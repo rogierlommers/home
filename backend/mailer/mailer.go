@@ -2,10 +2,10 @@ package mailer
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
 )
 
@@ -28,7 +28,7 @@ func NewMailer() Mailer {
 
 	smtpPort, err := strconv.Atoi(os.Getenv("QN_SMTP_PORT"))
 	if err != nil {
-		log.Printf("invalid smtp port provided (%s), default to zero", os.Getenv("QN_SMTP_PORT"))
+		logrus.Errorf("invalid smtp port provided (%s), default to zero", os.Getenv("QN_SMTP_PORT"))
 		smtpPort = 0
 	}
 
