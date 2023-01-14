@@ -6,10 +6,11 @@ import (
 )
 
 type Config struct {
-	StaticDir      string
-	BackendVersion string
-	Mode           string
-	GreedyFile     string
+	StaticDir  string
+	Mode       string
+	GreedyFile string
+
+	BackendVersion string // injected at build time
 }
 
 var Settings Config
@@ -18,7 +19,4 @@ func ReadConfig() {
 	Settings.StaticDir = os.Getenv("DIST_DIRECTORY")
 	Settings.Mode = strings.ToUpper(os.Getenv("MODE"))
 	Settings.GreedyFile = os.Getenv("GREEDY_FILE")
-
-	// injected at build-time
-	Settings.BackendVersion = "poep"
 }

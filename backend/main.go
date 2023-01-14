@@ -10,6 +10,7 @@ import (
 
 	cfg "github.com/rogierlommers/quick-note/backend/config"
 	"github.com/rogierlommers/quick-note/backend/greedy"
+	"github.com/rogierlommers/quick-note/backend/healthcheck"
 	"github.com/rogierlommers/quick-note/backend/mailer"
 )
 
@@ -59,6 +60,7 @@ func main() {
 	// add routes
 	mailer.AddRoutes(router)
 	greedy.AddRoutes(router)
+	healthcheck.AddRoutes(router)
 
 	// start serving
 	if err := http.ListenAndServe(":3000", router); err != nil {

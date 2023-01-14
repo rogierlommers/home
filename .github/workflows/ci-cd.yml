@@ -47,7 +47,7 @@ jobs:
         uses: actions/setup-go@v3
 
       - name: Build
-        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/quick-note ./backend/*.go
+        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X cfg.BackendVersion=DONDEROPGEK" -o ./bin/quick-note ./backend/*.go
 
       - name: List files in ./bin directory
         run: |
