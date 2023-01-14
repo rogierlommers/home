@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var BackendVersion string
+
 type Config struct {
 	StaticDir  string
 	Mode       string
@@ -19,4 +21,5 @@ func ReadConfig() {
 	Settings.StaticDir = os.Getenv("DIST_DIRECTORY")
 	Settings.Mode = strings.ToUpper(os.Getenv("MODE"))
 	Settings.GreedyFile = os.Getenv("GREEDY_FILE")
+	Settings.BackendVersion = BackendVersion
 }
