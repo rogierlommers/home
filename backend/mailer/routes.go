@@ -12,7 +12,7 @@ import (
 )
 
 func (m Mailer) AddRoutes(router *gin.Engine) {
-	router.POST("/api/send", m.sendMailHandler)
+	router.POST("/api/notes/send", m.sendMailHandler)
 	router.Static("/static", cfg.Settings.StaticDir)
 }
 
