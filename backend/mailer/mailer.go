@@ -53,6 +53,7 @@ func (m Mailer) SendMail(s string) error {
 	// mailer.Attach("lolcat.jpg")
 
 	d := gomail.NewDialer(m.smtpHost, m.smtpPort, m.smtpUsername, m.smtpPassword)
+	d.SSL = false
 	if err := d.DialAndSend(mailer); err != nil {
 		return err
 	}

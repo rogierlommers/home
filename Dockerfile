@@ -6,6 +6,9 @@ LABEL maintainer="Rogier Lommers <rogier@lommers.org>"
 COPY --chown=1000:1000 ./bin/quick-note/quick-note /app/quick-note
 COPY --chown=1000:1000 ./bin/dist /app/dist
 
+# isntall CA certificates (needed for smtp sending)
+RUN apt-get update && apt-get install ca-certificates -y && update-ca-certificates
+
 # binary will serve on 3000
 EXPOSE 3000
 
