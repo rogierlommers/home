@@ -26,7 +26,7 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
-	logrus.Info("screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
+	logrus.Infof("screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
 	str := base64.StdEncoding.EncodeToString(body)
 	return str, nil
 }
