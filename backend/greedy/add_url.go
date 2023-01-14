@@ -89,7 +89,7 @@ func (a *Article) Scrape() error {
 		logrus.Errorf("scrape error: %s", err)
 	} else {
 		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
-		a.Description = fmt.Sprintf("<br/><b>test</b><br/>%s<img src=\"data:image/jpeg;base64, %s\"/>", s.Preview.Description, thumbnail)
+		a.Description = fmt.Sprintf("%s<img src=\"data:image/jpeg;base64, %s\"/>", s.Preview.Description, thumbnail)
 	}
 
 	// debugging info
