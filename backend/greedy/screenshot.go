@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	cfg "github.com/rogierlommers/quick-note/backend/config"
 )
 
 func createScreenshot(s string) (string, error) {
 
-	target := fmt.Sprintf("https://screenshot.abstractapi.com/v1/?api_key=4ab7e5e662114f27b8c4c7ce9669d3d8&url=%s", url.QueryEscape(s))
+	target := fmt.Sprintf("https://screenshot.abstractapi.com/v1/?api_key=%s&url=%s", cfg.Settings.ScreenshotAPIToken, url.QueryEscape(s))
 
 	resp, err := http.Get(target)
 	if err != nil {
