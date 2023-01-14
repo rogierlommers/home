@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/quick-note/backend/api"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/rogierlommers/quick-note/backend/greedy"
 	"github.com/rogierlommers/quick-note/backend/mailer"
 )
 
@@ -17,14 +18,17 @@ func main() {
 	// read config and make globally available
 	cfg.ReadConfig()
 
-	// gin mode
+	// if mode is produciton, then tell it gin
 	if cfg.Settings.Mode == "PRO" || cfg.Settings.Mode == "PRODUCTION" {
 		log.Println("enabling production mode")
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// create mailer instance
-	m := mailer.NewMailer()
+	mailer := mailer.NewMailer()
+
+	// create greedy instance
+	greedy := greedy.NewGreedy()
 
 	// create router
 	router := gin.New()
@@ -38,7 +42,7 @@ func main() {
 	}))
 
 	// add routers
-	api.AddRoutes(router, m)
+	api.AddRoutes(router, mailer, greedy)
 
 	// start serving
 	if err := http.ListenAndServe(":3000", router); err != nil {

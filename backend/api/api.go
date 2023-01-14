@@ -9,12 +9,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/rogierlommers/quick-note/backend/greedy"
 	"github.com/rogierlommers/quick-note/backend/mailer"
 )
 
 // https://stackoverflow.com/questions/34046194/how-to-pass-arguments-to-router-handlers-in-golang-using-gin-web-framework
 
-func AddRoutes(router *gin.Engine, m mailer.Mailer) {
+func AddRoutes(router *gin.Engine, m mailer.Mailer, g greedy.Greedy) {
 
 	router.POST("/api/send", sendMailHandler(m))
 	router.GET("/api/info", sendInfoHandler)
@@ -29,7 +30,7 @@ func sendMailHandler(m mailer.Mailer) gin.HandlerFunc {
 			TodoItem string `json:"todo"`
 		}
 
-		// response type ro requester
+		// response type to frontend
 		type response struct {
 			Msg string `json:"msg"`
 		}
