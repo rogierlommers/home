@@ -1,12 +1,14 @@
 package greedy
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
+	"github.com/disintegration/imaging"
 	"github.com/dustin/go-humanize"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
 	"github.com/sirupsen/logrus"
@@ -14,6 +16,7 @@ import (
 
 func createScreenshot(s string) (string, error) {
 
+	// first download image using screenshot api
 	target := fmt.Sprintf("https://screenshot.abstractapi.com/v1/?api_key=%s&url=%s", cfg.Settings.ScreenshotAPIToken, url.QueryEscape(s))
 	logrus.Infof("target: %s", target)
 
@@ -29,7 +32,29 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
-	logrus.Infof("screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
-	str := base64.StdEncoding.EncodeToString(body)
+	logrus.Infof("raw screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
+
+	// resize image
+	img, err := imaging.Decode(bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+
+	dstImage := imaging.Resize(img, 800, 0, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+	if err := imaging.Encode(buf, dstImage, imaging.JPEG, nil); err != nil {
+		return "", err
+	}
+
+	resizedBytes, err := ioutil.ReadAll(buf)
+	if err != nil {
+		return "", err
+	}
+
+	// base64 encode
+	// https://github.com/disintegration/imaging/issues/141
+
+	str := base64.StdEncoding.EncodeToString(resizedBytes)
 	return str, nil
 }
