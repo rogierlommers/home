@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/quick-note/backend/api"
+
 	cfg "github.com/rogierlommers/quick-note/backend/config"
 	"github.com/rogierlommers/quick-note/backend/greedy"
 	"github.com/rogierlommers/quick-note/backend/mailer"
@@ -41,8 +41,9 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// add routers
-	api.AddRoutes(router, mailer, greedy)
+	// add routes
+	mailer.AddRoutes(router)
+	greedy.AddRoutes(router)
 
 	// start serving
 	if err := http.ListenAndServe(":3000", router); err != nil {
