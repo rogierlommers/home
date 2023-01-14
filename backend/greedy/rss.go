@@ -14,7 +14,7 @@ import (
 func (g Greedy) DisplayRSS(ginCTX *gin.Context) {
 	now := time.Now()
 	feed := &feeds.Feed{
-		Title:       "your personal rss feed",
+		Title:       "Quick-note / personal feed",
 		Link:        &feeds.Link{},
 		Description: "Saved pages, all in one RSS feed",
 		Created:     now,
