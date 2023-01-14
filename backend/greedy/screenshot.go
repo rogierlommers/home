@@ -56,5 +56,6 @@ func createScreenshot(s string) (string, error) {
 	// https://github.com/disintegration/imaging/issues/141
 
 	str := base64.StdEncoding.EncodeToString(resizedBytes)
+	logrus.Infof("thumb string size: %s", humanize.Bytes(uint64(len(str))))
 	return str, nil
 }
