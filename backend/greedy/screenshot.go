@@ -32,7 +32,7 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
-	logrus.Infof("raw screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
+	logrus.Infof("raw screenshot size: %s, api response: %s", humanize.Bytes(uint64(len(body))), resp.Status)
 
 	// resize image
 	img, err := imaging.Decode(bytes.NewReader(body))
@@ -40,10 +40,10 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
-	dstImage := imaging.Resize(img, 800, 0, imaging.Lanczos)
+	dstImage := imaging.Resize(img, 600, 0, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
-	if err := imaging.Encode(buf, dstImage, imaging.JPEG, nil); err != nil {
+	if err := imaging.Encode(buf, dstImage, imaging.JPEG); err != nil {
 		return "", err
 	}
 
