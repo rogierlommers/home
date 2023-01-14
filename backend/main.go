@@ -16,7 +16,11 @@ import (
 func main() {
 
 	// disable logrus timestamp
-	logrus.SetFormatter(new(logrus.TextFormatter))
+	formatter := new(logrus.TextFormatter)
+	formatter.DisableColors = true
+	formatter.DisableTimestamp = true
+
+	logrus.SetFormatter(formatter)
 
 	// read config and make globally available
 	cfg.ReadConfig()
