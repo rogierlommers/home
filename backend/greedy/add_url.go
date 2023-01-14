@@ -14,11 +14,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (g Greedy) AddArticle(ginCTX *gin.Context) {
+func (g Greedy) AddArticle(c *gin.Context) {
 
-	queryParam := ginCTX.Request.FormValue("url")
+	queryParam := c.Request.FormValue("url")
 	if len(queryParam) == 0 || queryParam == "about:blank" {
-		ginCTX.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "unable to insert empty or about:blank page"})
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "unable to insert empty or about:blank page"})
 		return
 	}
 
@@ -51,11 +51,11 @@ func (g Greedy) AddArticle(ginCTX *gin.Context) {
 	})
 
 	if err != nil {
-		ginCTX.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 
-	ginCTX.IndentedJSON(http.StatusOK, gin.H{"Message": fmt.Sprintf("Host %s added", getHostnameFromUrl(queryParam))})
+	c.IndentedJSON(http.StatusOK, gin.H{"Message": fmt.Sprintf("Host %s added", getHostnameFromUrl(queryParam))})
 }
 
 func getHostnameFromUrl(addedUrl string) (hostname string) {
@@ -68,10 +68,20 @@ func getHostnameFromUrl(addedUrl string) (hostname string) {
 
 // Scrape gathers information about new article
 func (a *Article) Scrape() error {
-	// time function duration
+
 	start := time.Now()
 	logrus.Infof("start scraping article [id: %d] [url: %s]", a.ID, a.URL)
 
+	// try to get screenshot
+	var thumbnail string
+	base64Image, err := createScreenshot(a.URL)
+	if err != nil {
+		logrus.Error(err)
+	} else {
+		thumbnail = base64Image
+	}
+
+	// scrape html
 	s, err := goscraper.Scrape(a.URL, 5)
 	if err != nil {
 		a.Title = fmt.Sprintf("[Greedy] scrape failed: %q", a.URL)
@@ -79,7 +89,7 @@ func (a *Article) Scrape() error {
 		logrus.Errorf("scrape error: %s", err)
 	} else {
 		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
-		a.Description = s.Preview.Description
+		a.Description = fmt.Sprintf("<br/><b>test</b><br/>%s<img src=\"data:image/jpeg;base64, %s\"/>", s.Preview.Description, thumbnail)
 	}
 
 	// debugging info
