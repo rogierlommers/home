@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/dustin/go-humanize"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/sirupsen/logrus"
 )
 
 func createScreenshot(s string) (string, error) {
@@ -24,6 +26,7 @@ func createScreenshot(s string) (string, error) {
 		return "", err
 	}
 
+	logrus.Info("screenshot size: %s, api response: %d", humanize.Bytes(uint64(len(body))), resp.Status)
 	str := base64.StdEncoding.EncodeToString(body)
 	return str, nil
 }
