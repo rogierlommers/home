@@ -14,30 +14,32 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func createScreenshot(s string) (string, error) {
+func createScreenshot(s string) (string, error, []string) {
+
+	var d []string // used for debugging afterwards
 
 	// first download image using screenshot api
 	target := fmt.Sprintf("https://screenshot.abstractapi.com/v1/?api_key=%s&url=%s", cfg.Settings.ScreenshotAPIToken, url.QueryEscape(s))
-	logrus.Infof("target: %s", target)
+	d = logAndCollect(d, target, nil)
 
 	resp, err := http.Get(target)
 	if err != nil {
-		return "", err
+		return "", err, d
 	}
 
-	logrus.Infof("api response code: %d", resp.StatusCode)
+	d = logAndCollect(d, fmt.Sprintf("api response code: %d", resp.StatusCode), nil)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", err, d
 	}
 
-	logrus.Infof("raw screenshot size: %s, api response: %s", humanize.Bytes(uint64(len(body))), resp.Status)
+	d = logAndCollect(d, fmt.Sprintf("raw screenshot size: %s, api response: %s", humanize.Bytes(uint64(len(body))), resp.Status), nil)
 
 	// resize image
 	img, err := imaging.Decode(bytes.NewReader(body))
 	if err != nil {
-		return "", err
+		return "", err, d
 	}
 
 	logrus.Info("start resize")
@@ -48,18 +50,48 @@ func createScreenshot(s string) (string, error) {
 
 	buf := new(bytes.Buffer)
 	if err := imaging.Encode(buf, croppedImage, imaging.JPEG); err != nil {
-		return "", err
+		return "", err, d
 	}
 
 	resizedBytes, err := ioutil.ReadAll(buf)
 	if err != nil {
-		return "", err
+		return "", err, d
 	}
 
 	// base64 encode
 	// https://github.com/disintegration/imaging/issues/141
 
 	str := base64.StdEncoding.EncodeToString(resizedBytes)
-	logrus.Infof("thumb string size: %s", humanize.Bytes(uint64(len(str))))
-	return str, nil
+	d = logAndCollect(d, fmt.Sprintf("thumb string size: %s", humanize.Bytes(uint64(len(str)))), nil)
+
+	return str, nil, d
+}
+
+// func logAndCollect(collection []string, s string, err error) []string {
+
+// 	if len(s) != 0 {
+// 		collection = append(collection, s)
+// 		logrus.Info(s)
+// 	}
+
+// 	if err != nil {
+// 		collection = append(collection, err.Error())
+// 		logrus.Error(err)
+// 	}
+
+// 	logrus.Info
+// 	return collection
+// }
+
+func logAndCollect(c []string, s string, e error) []string {
+
+	if len(s) != 0 {
+		c = append(c, s)
+	}
+
+	if e != nil {
+		c = append(c, e.Error())
+	}
+
+	return c
 }

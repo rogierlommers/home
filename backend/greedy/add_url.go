@@ -74,7 +74,7 @@ func (a *Article) Scrape() error {
 
 	// try to get screenshot
 	var thumbnail string
-	base64Image, err := createScreenshot(a.URL)
+	base64Image, err, debugCollection := createScreenshot(a.URL)
 	if err != nil {
 		logrus.Error(err)
 	} else {
@@ -90,11 +90,17 @@ func (a *Article) Scrape() error {
 	} else {
 		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
 		a.Description = fmt.Sprintf("%s<img src=\"data:image/jpeg;base64, %s\"/>", s.Preview.Description, thumbnail)
+
+		// now add devug info to description field
+		for _, v := range debugCollection {
+			a.Description = a.Description + "<br/>" + v
+		}
+
 	}
 
 	// debugging info
 	elapsed := time.Since(start)
-	logrus.Infof("scraping done [id: %d] [title: %q] [elapsed: %s]", a.ID, a.Title, elapsed)
+	logrus.Infof("scraping done, id: %d, title: %q, elapsed: %s, debugs: %d", a.ID, a.Title, elapsed, len(debugCollection))
 	return nil
 }
 
