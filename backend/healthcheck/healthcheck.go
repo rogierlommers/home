@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/sirupsen/logrus"
 )
 
 func AddRoutes(router *gin.Engine) {
@@ -12,5 +13,6 @@ func AddRoutes(router *gin.Engine) {
 }
 
 func healthHandler(c *gin.Context) {
+	logrus.Info("incoming healthcheck")
 	c.IndentedJSON(http.StatusOK, gin.H{"version": cfg.Settings.BackendVersion})
 }

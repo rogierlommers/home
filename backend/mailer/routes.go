@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/sirupsen/logrus"
 )
 
 func (m Mailer) AddRoutes(router *gin.Engine) {
@@ -16,6 +17,8 @@ func (m Mailer) AddRoutes(router *gin.Engine) {
 }
 
 func (m Mailer) sendMailHandler(c *gin.Context) {
+	logrus.Info("incoming mail request")
+
 	// incoming body
 	type incoming struct {
 		TodoItem string `json:"todo"`

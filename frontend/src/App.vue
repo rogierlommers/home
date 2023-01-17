@@ -22,13 +22,16 @@
 <script>
 import axios from 'axios';
 import { Config } from './config';
+
+
 export default {
   name: 'App',
 
   data() {
     return {
       sendText: '',
-      serverResponse: `${Config.apiHostname}`,
+      // serverResponse: `${Config.apiHostname}`,
+      serverResponse: "",
     }
   },
 
@@ -46,11 +49,22 @@ export default {
           this.serverResponse = response.data.msg;
         })
         .catch((error) => {
-          // console.log(error)
           this.serverResponse = `Error: ${error}<br/>${error.response.data.msg}`
         })
 
     }
   }
 }
+
+// HOW TO USER THIS FUNCTION?
+// function getHealth() {   
+
+//   var x = axios.get('http://localhost:3000/health')
+//   .then((response) => {
+//     x = response.data.version
+//   });
+
+//   return x
+// } 
+
 </script>
