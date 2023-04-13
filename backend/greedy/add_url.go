@@ -44,12 +44,12 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 	  <main class="wrapper">
 	
 		<section class="container" id="examples">
-		  <h5 class="title">Success!</h5>
-		  <p>the url has succesfully been added</p>
+		  <h1 class="title"><a>Success!</a></h1>
+		  <p><em>The url has succesfully been added.</em></p>
 		  <p><strong>Description:</strong><br/>%s<br/></p>
 		  <p><strong>Title:</strong><br/>%s<br/></p>	  
 		</section>
-	
+
 	  </main>
 	
 	</body>
