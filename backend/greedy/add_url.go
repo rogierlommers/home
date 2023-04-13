@@ -27,15 +27,33 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 	}
 
 	// build html
-	output := fmt.Sprintf(`<html>
+	output := fmt.Sprintf(`<!DOCTYPE html>
+	<html lang="en">
+	
 	<head>
-	<title>Page added</title>
+	  <meta charset="utf-8" />
+	  <meta name="viewport" content="width=device-width, initial-scale=1" />
+	  <title>quick-note | url added</title>
+	  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+	  <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
 	</head>
+	
 	<body>
-	<h2>Greedy / page added</h2>
-	<p><strong>Description:</strong><br/>%s<br/></p>
-	<p><strong>Title:</strong><br/>%s<br/></p>
+	  <main class="wrapper">
+	
+		<section class="container" id="examples">
+		  <h5 class="title">Success!</h5>
+		  <p>the url has succesfully been added</p>
+		  <p><strong>Description:</strong><br/>%s<br/></p>
+		  <p><strong>Title:</strong><br/>%s<br/></p>	  
+		</section>
+	
+	  </main>
+	
 	</body>
+	
 	</html>`, newArticle.Description, newArticle.Title)
 
 	// serve
