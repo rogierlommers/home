@@ -1,11 +1,13 @@
 package greedy
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
+	"strings"
 	"time"
 
 	"github.com/badoux/goscraper"
@@ -13,6 +15,33 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
+
+func (g Greedy) AcceptedResponse(c *gin.Context) {
+
+	encodedMessage := c.Query("msg")
+
+	var newArticle Article
+	if err := decodeFromBase64(&newArticle, encodedMessage); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// build html
+	output := fmt.Sprintf(`<html>
+	<head>
+	<title>Page added</title>
+	</head>
+	<body>
+	<h2>Greedy / page added</h2>
+	<p><strong>Description:</strong><br/>%s<br/></p>
+	<p><strong>Title:</strong><br/>%s<br/></p>
+	</body>
+	</html>`, newArticle.Description, newArticle.Title)
+
+	// serve
+	c.Header("Content-Type", "text/html")
+	c.String(200, output)
+}
 
 func (g Greedy) AddArticle(c *gin.Context) {
 
@@ -55,15 +84,15 @@ func (g Greedy) AddArticle(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"Message": fmt.Sprintf("Host %s added", getHostnameFromUrl(queryParam))})
-}
-
-func getHostnameFromUrl(addedUrl string) (hostname string) {
-	u, err := url.Parse(addedUrl)
+	// base64 encode the message
+	msg, err := encodeToBase64(newArticle)
 	if err != nil {
-		logrus.Errorf("error looking up hostname [url: %s] [err: %s]", addedUrl, err)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	return u.Host
+
+	// redirect with encoded message
+	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/api/greedy/accepted?msg=%s", msg))
 }
 
 // Scrape gathers information about new article
@@ -71,15 +100,6 @@ func (a *Article) Scrape() error {
 
 	start := time.Now()
 	logrus.Infof("start scraping article [id: %d] [url: %s]", a.ID, a.URL)
-
-	// try to get screenshot
-	var thumbnail string
-	base64Image, err, debugCollection := createScreenshot(a.URL)
-	if err != nil {
-		logrus.Error(err)
-	} else {
-		thumbnail = base64Image
-	}
 
 	// scrape html
 	s, err := goscraper.Scrape(a.URL, 5)
@@ -89,18 +109,12 @@ func (a *Article) Scrape() error {
 		logrus.Errorf("scrape error: %s", err)
 	} else {
 		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
-		a.Description = fmt.Sprintf("%s<img src=\"data:image/jpeg;base64, %s\"/>", s.Preview.Description, thumbnail)
-
-		// now add devug info to description field
-		for _, v := range debugCollection {
-			a.Description = a.Description + "<br/>" + v
-		}
-
+		a.Description = s.Preview.Description
 	}
 
 	// debugging info
 	elapsed := time.Since(start)
-	logrus.Infof("scraping done, id: %d, title: %q, elapsed: %s, debugs: %d", a.ID, a.Title, elapsed, len(debugCollection))
+	logrus.Infof("scraping done, id: %d, title: %q, elapsed: %s", a.ID, a.Title, elapsed)
 	return nil
 }
 
@@ -117,4 +131,19 @@ func (a *Article) encode() ([]byte, error) {
 		return nil, err
 	}
 	return enc, nil
+}
+
+func encodeToBase64(v interface{}) (string, error) {
+	var buf bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+	err := json.NewEncoder(encoder).Encode(v)
+	if err != nil {
+		return "", err
+	}
+	encoder.Close()
+	return buf.String(), nil
+}
+
+func decodeFromBase64(v interface{}, enc string) error {
+	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
 }
