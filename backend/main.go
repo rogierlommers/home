@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/rogierlommers/quick-note/backend/enyaq"
 	"github.com/rogierlommers/quick-note/backend/greedy"
 	"github.com/rogierlommers/quick-note/backend/healthcheck"
 	"github.com/rogierlommers/quick-note/backend/mailer"
@@ -31,6 +32,9 @@ func main() {
 		logrus.Info("enabling production mode")
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// enyaq
+	enyaq.NewEnyaq(cfg.Settings.EnyaqUsername, cfg.Settings.EnyaqPassword, cfg.Settings.EnyaqVIN)
 
 	// create mailer instance
 	mailer := mailer.NewMailer()
@@ -61,6 +65,7 @@ func main() {
 	mailer.AddRoutes(router)
 	greedy.AddRoutes(router)
 	healthcheck.AddRoutes(router)
+	enyaq.AddRoutes(router)
 
 	// start serving
 	if err := http.ListenAndServe(":3000", router); err != nil {
