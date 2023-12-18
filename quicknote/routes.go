@@ -1,4 +1,4 @@
-package mailer
+package quicknote
 
 import (
 	"encoding/json"
@@ -7,16 +7,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	cfg "github.com/rogierlommers/quick-note/backend/config"
+
 	"github.com/sirupsen/logrus"
 )
 
-func (m Mailer) AddRoutes(router *gin.Engine) {
-	router.POST("/api/notes/send", m.sendMailHandler)
-	router.Static("/static", cfg.Settings.StaticDir)
-}
-
-func (m Mailer) sendMailHandler(c *gin.Context) {
+func sendMailHandler(c *gin.Context) {
 	logrus.Info("incoming mail request")
 
 	// incoming body
@@ -46,7 +41,7 @@ func (m Mailer) sendMailHandler(c *gin.Context) {
 	}
 
 	// do something todo item
-	if err := m.SendMail(i.TodoItem); err != nil {
+	if err := sendMail(i.TodoItem); err != nil {
 		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err.Error())})
 		return
 	}

@@ -1,10 +1,9 @@
-# quick-note
+# home
 
-A VUE + Go application to quickly send notes to myself.
+Go application that runs home automation topics.
 
 ## github actions
 
-[![quick-note](https://github.com/rogierlommers/quick-note/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/rogierlommers/quick-note/actions/workflows/ci-cd.yml)
+[![quick-note](https://github.com/rogierlommers/home/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/rogierlommers/home/actions/workflows/ci-cd.yml)
 
-https://github.com/rogierlommers/quick-note/actions
-
+https://github.com/rogierlommers/home/actions

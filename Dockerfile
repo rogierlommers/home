@@ -1,10 +1,9 @@
 FROM ubuntu
-LABEL description="Quick-notes from Rogier Lommers"
+LABEL description="Home server from Rogier Lommers"
 LABEL maintainer="Rogier Lommers <rogier@lommers.org>"
 
 # add binary and assets
-COPY --chown=1000:1000 ./bin/quick-note/quick-note /app/quick-note
-COPY --chown=1000:1000 ./bin/dist /app/dist
+COPY --chown=1000:1000 ./bin/home /app/home
 
 # isntall CA certificates (needed for smtp sending)
 RUN apt-get update && apt-get install ca-certificates -y && update-ca-certificates
@@ -13,10 +12,7 @@ RUN apt-get update && apt-get install ca-certificates -y && update-ca-certificat
 EXPOSE 3000
 
 # make binary executable
-RUN chmod +x /app/quick-note
-
-# set default dist directory
-ENV DIST_DIRECTORY "/app/dist"
+RUN chmod +x /app/home
 
 # run binary
-CMD ["/app/quick-note"]
+CMD ["/app/home"]

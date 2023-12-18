@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	cfg "github.com/rogierlommers/quick-note/backend/config"
+	"github.com/gin-gonic/gin"
+	"github.com/rogierlommers/home/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,15 +31,15 @@ type Article struct {
 	Added       time.Time
 }
 
-func NewGreedy() (Greedy, error) {
+func NewGreedy(cfg config.AppConfig) (Greedy, error) {
 	boltConfig := &bolt.Options{Timeout: 1 * time.Second}
 
-	db, err := bolt.Open(cfg.Settings.GreedyFile, 0600, boltConfig)
+	db, err := bolt.Open(cfg.GreedyFile, 0600, boltConfig)
 	if err != nil {
 		return Greedy{}, err
 	}
 
-	logrus.Infof("file %s created or opened", cfg.Settings.GreedyFile)
+	logrus.Infof("file %s created or opened", cfg.GreedyFile)
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
@@ -71,4 +72,10 @@ func (g Greedy) Count() (amount int) {
 	})
 
 	return amount
+}
+
+func (g Greedy) AddRoutes(router *gin.Engine) {
+	router.GET("/api/greedy/add", g.AddArticle)
+	router.GET("/api/greedy/rss", g.DisplayRSS)
+	router.GET("/api/greedy/accepted", g.AcceptedResponse)
 }

@@ -1,6 +1,6 @@
-module github.com/rogierlommers/quick-note
+module github.com/rogierlommers/home
 
-go 1.23
+go 1.21.5
 
 require (
 	github.com/badoux/goscraper v0.0.0-20190827161153-36995ce6b19f

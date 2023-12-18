@@ -11,12 +11,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rogierlommers/home/config"
 )
 
 var pollInterval = 60
 
-func NewEnyaq(username string, password string, vin string) {
+func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 
+	// First add route
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// then start with metrics
 	var evRange = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "ev_range",
 		Help: "Electric vehicle range",
@@ -51,13 +56,13 @@ func NewEnyaq(username string, password string, vin string) {
 
 	var err error
 
-	logHandler := util.NewLogger("enyaq").Redact(username, password, vin)
+	logHandler := util.NewLogger("enyaq").Redact(cfg.EnyaqUsername, cfg.EnyaqPassword, cfg.EnyaqVIN)
 
 	go func() {
 		for {
 			var provider *skoda.Provider
 			if err == nil {
-				ts, err := service.TokenRefreshServiceTokenSource(logHandler, skoda.TRSParams, connect.AuthParams, username, password)
+				ts, err := service.TokenRefreshServiceTokenSource(logHandler, skoda.TRSParams, connect.AuthParams, cfg.EnyaqUsername, cfg.EnyaqPassword)
 				if err != nil {
 					log.Print("TokenRefresh error: ", err)
 					time.Sleep(time.Duration(pollInterval) * time.Second)
@@ -67,7 +72,7 @@ func NewEnyaq(username string, password string, vin string) {
 				api := skoda.NewAPI(logHandler, ts)
 				api.Client.Timeout = time.Second * 30
 
-				provider = skoda.NewProvider(api, vin, time.Second*30)
+				provider = skoda.NewProvider(api, cfg.EnyaqVIN, time.Second*30)
 			}
 
 			rangeKm, err := provider.Range()
@@ -109,9 +114,7 @@ func NewEnyaq(username string, password string, vin string) {
 			}
 
 			finishTime, err := provider.FinishTime()
-			if err != nil {
-				log.Print("Finish time error: ", err)
-			} else {
+			if err == nil {
 				evFinishTime.Set(float64(finishTime.Unix()))
 			}
 
@@ -126,8 +129,4 @@ func NewEnyaq(username string, password string, vin string) {
 		}
 	}()
 
-}
-
-func AddRoutes(router *gin.Engine) {
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 }
