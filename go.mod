@@ -1,6 +1,8 @@
 module github.com/rogierlommers/home
 
-go 1.21.5
+go 1.21.1
+
+toolchain go1.21.5
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
