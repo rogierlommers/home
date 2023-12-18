@@ -4,7 +4,7 @@ go 1.21.1
 
 toolchain go1.21.5
 
-replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
+// replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
 	github.com/badoux/goscraper v0.0.0-20190827161153-36995ce6b19f
