@@ -1,6 +1,6 @@
 module github.com/rogierlommers/home
 
-go 1.21.5
+go 1.20
 
 require (
 	github.com/badoux/goscraper v0.0.0-20190827161153-36995ce6b19f
