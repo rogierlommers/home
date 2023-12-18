@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/enyaq"
 	"github.com/rogierlommers/home/greedy"
 	"github.com/rogierlommers/home/homepage"
 	"github.com/rogierlommers/home/quicknote"
@@ -40,7 +41,7 @@ func main() {
 
 	// initialize all services
 	homepage.Add(router, config)
-	// enyaq.NewEnyaq(router, config)
+	enyaq.NewEnyaq(router, config)
 	quicknote.NewQuicknote(router, config)
 
 	greedy, err := greedy.NewGreedy(config)
