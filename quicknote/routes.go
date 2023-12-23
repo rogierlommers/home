@@ -1,7 +1,7 @@
 package quicknote
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,41 +11,34 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// response type to frontend
+type response struct {
+	Msg string `json:"msg"`
+}
+
 func sendMailHandler(c *gin.Context) {
-	logrus.Info("incoming mail request")
 
-	// incoming body
-	type incoming struct {
-		TodoItem string `json:"todo"`
-	}
-
-	// response type to frontend
-	type response struct {
-		Msg string `json:"msg"`
-	}
-
-	// Try to decode the request into the thumbnailRequest struct.
-	var i incoming
-	if err := json.NewDecoder(c.Request.Body).Decode(&i); err == io.EOF {
-		c.JSON(http.StatusInternalServerError, response{Msg: "error: EOF detected"})
+	// read attachment; pure text will be added as .txt file
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		logrus.Errorf("error parsing formFile: %s", err)
 		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, response{Msg: err.Error()})
+	}
+	defer file.Close()
+
+	// read file into buffer
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		logrus.Errorf("error reading file into buffer: %s", err)
 		return
 	}
 
-	// validate incoming message
-	if len(i.TodoItem) == 0 {
-		c.JSON(http.StatusInternalServerError, response{Msg: "error: empty todo-item detected"})
-		return
-	}
-
-	// do something todo item
-	if err := sendMail(i.TodoItem); err != nil {
+	// mail the file
+	if err := sendMail(header.Filename, buf.Bytes()); err != nil {
 		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err.Error())})
 		return
 	}
 
 	// write happy flow response
-	c.JSON(200, response{Msg: fmt.Sprintf("succesfully emailed: %d bytes", len(i.TodoItem))})
+	c.JSON(200, response{Msg: "email succesfully sent"})
 }

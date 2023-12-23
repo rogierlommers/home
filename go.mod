@@ -4,9 +4,12 @@ go 1.21.1
 
 toolchain go1.21.5
 
+replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
+
 require (
 	github.com/badoux/goscraper v0.0.0-20190827161153-36995ce6b19f
 	github.com/boltdb/bolt v1.3.1
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/evcc-io/evcc v0.0.0-20231218130336-7dd0666f70ab
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
@@ -15,8 +18,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
-
-replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
 	dario.cat/mergo v1.0.0 // indirect

@@ -3,6 +3,7 @@ package quicknote
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -53,15 +54,44 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
 
 }
 
-func sendMail(s string) error {
-	// uses this: https://mailtrap.io/blog/golang-send-email/
-	mailer := gomail.NewMessage()
+// sendMail sends an email
+// filename is a string with the filename
+// attachment is a []byte
+func sendMail(filename string, attachment []byte) error {
 
+	// safe file to tmp location
+	tmpFilename := fmt.Sprintf("/tmp/%s", filename)
+	err := os.WriteFile(tmpFilename, attachment, 0777)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmpFilename)
+
+	// initialise mailer. Uses this: https://mailtrap.io/blog/golang-send-email/
+	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", quickNote.fromEmail)
 	mailer.SetHeader("To", quickNote.targetEmail)
-	mailer.SetHeader("Subject", fmt.Sprintf("note: %s", s))
-	mailer.SetBody("text/html", defineBody(s))
-	// mailer.Attach("lolcat.jpg")
+
+	// first determine attachment
+	fileExtension := filepath.Ext(filename)
+	var subject = ""
+
+	switch fileExtension {
+	case ".txt":
+		// we need to extract the text out of the text file
+		contents, err := os.ReadFile(tmpFilename)
+		if err != nil {
+			logrus.Error(err)
+		}
+		subject = fmt.Sprintf("Todo item: %s", contents)
+	default:
+		subject = fmt.Sprintf("Todo item: %s", filename)
+		mailer.Attach(tmpFilename)
+	}
+
+	// actual send mail
+	mailer.SetHeader("Subject", subject)
+	mailer.SetBody("text/html", defineBody(subject))
 
 	d := gomail.NewDialer(quickNote.smtpHost, quickNote.smtpPort, quickNote.smtpUsername, quickNote.smtpPassword)
 	d.SSL = false
@@ -69,6 +99,7 @@ func sendMail(s string) error {
 		return err
 	}
 
+	logrus.Infof("Email succesfully sent")
 	return nil
 }
 

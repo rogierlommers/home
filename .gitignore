@@ -1,6 +1,7 @@
 # secret shit
 backend.secrets.sh
 greedy.db
+bin
 
 # Binaries for programs and plugins
 *.exe
