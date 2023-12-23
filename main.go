@@ -55,6 +55,9 @@ func main() {
 	greedy.ScheduleCleanup()
 	logrus.Infof("bucket initialized with %d records", greedy.Count())
 
+	// show version number
+	logrus.Info("version of: december 23 - 2023")
+
 	// start serving
 	if err := http.ListenAndServe(config.HostPort, router); err != nil {
 		logrus.Fatal(err)
