@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# set to exit when something fails
+set -e 
+set -o pipefail
+
 echo "building binary"
 GOOS=linux GOARCH=amd64 go build -o ./bin/home *.go
 
