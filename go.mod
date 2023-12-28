@@ -7,6 +7,7 @@ toolchain go1.21.5
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
+	github.com/amimof/huego v1.2.1
 	github.com/badoux/goscraper v0.0.0-20190827161153-36995ce6b19f
 	github.com/boltdb/bolt v1.3.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -35,6 +36,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
+	github.com/collinux/gohue v0.0.0-20191209235909-5684411cfded // indirect
 	github.com/coreos/go-oidc/v3 v3.8.0 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/fatih/structs v1.1.0 // indirect

@@ -10,7 +10,6 @@ import (
 	"github.com/evcc-io/evcc/vehicle/vag/service"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rogierlommers/home/config"
 )
 
@@ -28,9 +27,6 @@ import (
 var pollInterval = 60
 
 func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
-
-	// First add route
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// then start with metrics
 	var evRange = prometheus.NewGauge(prometheus.GaugeOpts{

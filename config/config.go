@@ -13,6 +13,8 @@ type AppConfig struct {
 	EnyaqVIN      string
 	EnyaqUsername string
 	EnyaqPassword string
+	HueIPAddress  string
+	HueToken      string
 }
 
 func ReadConfig() AppConfig {
@@ -22,6 +24,8 @@ func ReadConfig() AppConfig {
 		EnyaqVIN:      os.Getenv("ENYAQ_VIN"),
 		EnyaqUsername: os.Getenv("ENYAQ_USERNAME"),
 		EnyaqPassword: os.Getenv("ENYAQ_PASSWORD"),
+		HueIPAddress:  os.Getenv("HUE_IPADDRESS"),
+		HueToken:      os.Getenv("HUE_TOKEN"),
 	}
 
 	if strings.ToLower(os.Getenv("DEV")) == "true" {
