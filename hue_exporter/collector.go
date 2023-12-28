@@ -51,9 +51,9 @@ func (c hueCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, light := range lights {
 
 		reachableValue := fmt.Sprintf("%v", light.State.Reachable)
-		logrus.Infof("Name: %s / turned on: %v, reachable: %v", light.Name, light.State.On, reachableValue)
 		name := nameRe.ReplaceAllString(light.Name, "_")
 
+		// logrus.Infof("Name: %s / turned on: %v, reachable: %v", light.Name, light.State.On, reachableValue)
 		if !light.State.Reachable {
 			c.lightState.With(prometheus.Labels{"name": name, "reachable": reachableValue}).Set(-1.0)
 		} else if light.State.On {

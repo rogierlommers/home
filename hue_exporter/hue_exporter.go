@@ -10,6 +10,8 @@ import (
 
 func NewHue(router *gin.Engine, cfg config.AppConfig) {
 
+	// logrus.Infof("using IP address: %s, token: %s", cfg.HueIPAddress, cfg.HueToken)
+
 	bridge, err := hue.NewBridge(cfg.HueIPAddress)
 	if err != nil {
 		logrus.Errorf("newBridge error: %s", err)
