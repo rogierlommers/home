@@ -62,7 +62,7 @@ func main() {
 	logrus.Infof("bucket initialized with %d records", greedy.Count())
 
 	// show version number
-	logrus.Info("version of: december 28 - 2023")
+	logrus.Info("version of: december 31 - 2023")
 
 	// start serving
 	if err := http.ListenAndServe(config.HostPort, router); err != nil {

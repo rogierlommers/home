@@ -24,11 +24,10 @@ const (
 
 // Article holds information about saved URLs
 type Article struct {
-	ID          int
-	URL         string
-	Title       string
-	Description string
-	Added       time.Time
+	ID    int
+	URL   string
+	Title string
+	Added time.Time
 }
 
 func NewGreedy(cfg config.AppConfig) (Greedy, error) {

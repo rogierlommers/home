@@ -36,11 +36,10 @@ func (g Greedy) DisplayRSS(ginCTX *gin.Context) {
 			}
 
 			newItem := feeds.Item{
-				Title:       a.Title,
-				Link:        &feeds.Link{Href: a.URL},
-				Description: a.Description,
-				Created:     a.Added,
-				Id:          strconv.Itoa(a.ID),
+				Title:   a.Title,
+				Link:    &feeds.Link{Href: a.URL},
+				Created: a.Added,
+				Id:      strconv.Itoa(a.ID),
 			}
 			feed.Add(&newItem)
 			count++

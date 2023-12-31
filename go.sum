@@ -9,8 +9,6 @@ github.com/Masterminds/sprig/v3 v3.2.3 h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj
 github.com/Masterminds/sprig/v3 v3.2.3/go.mod h1:rXcFaZ2zZbLRJv/xSysmlgIM1u11eBaRMhvYXJNkGuM=
 github.com/PuerkitoBio/goquery v1.8.1 h1:uQxhNlArOIdbrH1tr0UXwdVFgDcZDrZVdcpygAcwmWM=
 github.com/PuerkitoBio/goquery v1.8.1/go.mod h1:Q8ICL1kNUJ2sXGoAhPGUdYDJvgQgHzJsnnd3H7Ho5jQ=
-github.com/amimof/huego v1.2.1 h1:kd36vsieclW4fZ4Vqii9DNU2+6ptWWtkp4OG0AXM8HE=
-github.com/amimof/huego v1.2.1/go.mod h1:z1Sy7Rrdzmb+XsGHVEhODrRJRDq4RCFW7trCI5cKmeA=
 github.com/andig/gosunspec v0.0.0-20211108155140-af2e73b86e71 h1:tnjVNZjuz+CK6fdc7ohJpMHjcEGFI5APp0l5T5Ocr/Y=
 github.com/andig/gosunspec v0.0.0-20211108155140-af2e73b86e71/go.mod h1:c6P6szcR+ROkqZruOR4f6qbDKFjZX6OitPpj+yJ/r8k=
 github.com/andybalholm/cascadia v1.3.1/go.mod h1:R4bJ1UQfqADjvDa4P6HZHLh/3OxWWEqc0Sk8XGwHqvA=
@@ -116,8 +114,6 @@ github.com/itchyny/gojq v0.12.14 h1:6k8vVtsrhQSYgSGg827AD+PVVaB1NLXEdX+dda2oZCc=
 github.com/itchyny/gojq v0.12.14/go.mod h1:y1G7oO7XkcR1LPZO59KyoCRy08T3j9vDYRV0GgYSS+s=
 github.com/itchyny/timefmt-go v0.1.5 h1:G0INE2la8S6ru/ZI5JecgyzbbJNs5lG1RcBqa7Jm6GE=
 github.com/itchyny/timefmt-go v0.1.5/go.mod h1:nEP7L+2YmAbT2kZ2HfSs1d8Xtw9LY8D2stDBckWakZ8=
-github.com/jarcoal/httpmock v1.0.4 h1:jp+dy/+nonJE4g4xbVtl9QdrUNbn6/3hDT5R4nDIZnA=
-github.com/jarcoal/httpmock v1.0.4/go.mod h1:ATjnClrvW/3tijVmpL/va5Z3aAyGvqU3gCT8nX0Txik=
 github.com/jpfielding/go-http-digest v0.0.0-20211006141426-fbc93758452e h1:iLmt7czLE9ophoU4xZcckVNCXp+auTvVSQ9MGTWbgBY=
 github.com/jpfielding/go-http-digest v0.0.0-20211006141426-fbc93758452e/go.mod h1:oLt6zF2euTyCg2Cxz01B3VC5SJcPpKpYnOAqvO+480s=
 github.com/jpfielding/gowirelog v0.0.0-20200123170752-df8f8dccb721/go.mod h1:R8b6Hefiy6MSxbJ8dbF9Gkaa/LwFh9meFV0i9hkR5i8=

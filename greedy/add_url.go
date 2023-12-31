@@ -1,13 +1,11 @@
 package greedy
 
 import (
-	"bytes"
-	"encoding/base64"
+	b64 "encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/badoux/goscraper"
@@ -18,10 +16,8 @@ import (
 
 func (g Greedy) AcceptedResponse(c *gin.Context) {
 
-	encodedMessage := c.Query("msg")
-
-	var newArticle Article
-	if err := decodeFromBase64(&newArticle, encodedMessage); err != nil {
+	decodedMessage, err := b64.StdEncoding.DecodeString(c.Query("msg"))
+	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -33,7 +29,7 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 	<head>
 	  <meta charset="utf-8" />
 	  <meta name="viewport" content="width=device-width, initial-scale=1" />
-	  <title>quick-note | url added</title>
+	  <title>home | url added</title>
 	  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
 	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
 	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
@@ -46,7 +42,6 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 		<section class="container" id="examples">
 		  <h1 class="title"><a>Success!</a></h1>
 		  <p><em>The url has succesfully been added.</em></p>
-		  <p><strong>Description:</strong><br/>%s<br/></p>
 		  <p><strong>Title:</strong><br/>%s<br/></p>	  
 		</section>
 
@@ -54,7 +49,7 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 	
 	</body>
 	
-	</html>`, newArticle.Description, newArticle.Title)
+	</html>`, string(decodedMessage))
 
 	// serve
 	c.Header("Content-Type", "text/html")
@@ -102,15 +97,11 @@ func (g Greedy) AddArticle(c *gin.Context) {
 		return
 	}
 
-	// base64 encode the message
-	msg, err := encodeToBase64(newArticle)
-	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	// base64 encode the title
+	encoded := b64.StdEncoding.EncodeToString([]byte(newArticle.Title))
 
 	// redirect with encoded message
-	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/api/greedy/accepted?msg=%s", msg))
+	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/api/greedy/accepted?msg=%s", encoded))
 }
 
 // Scrape gathers information about new article
@@ -120,14 +111,11 @@ func (a *Article) Scrape() error {
 	logrus.Infof("start scraping article [id: %d] [url: %s]", a.ID, a.URL)
 
 	// scrape html
-	s, err := goscraper.Scrape(a.URL, 5)
+	s, err := goscraper.Scrape(a.URL, 10)
 	if err != nil {
-		a.Title = fmt.Sprintf("[Greedy] scrape failed: %q", a.URL)
-		a.Description = fmt.Sprintf("Scraping failed for url %q", a.URL)
-		logrus.Errorf("scrape error: %s", err)
+		a.Title = fmt.Sprintf("[Greedy] %s", a.URL)
 	} else {
 		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
-		a.Description = s.Preview.Description
 	}
 
 	// debugging info
@@ -149,19 +137,4 @@ func (a *Article) encode() ([]byte, error) {
 		return nil, err
 	}
 	return enc, nil
-}
-
-func encodeToBase64(v interface{}) (string, error) {
-	var buf bytes.Buffer
-	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
-	err := json.NewEncoder(encoder).Encode(v)
-	if err != nil {
-		return "", err
-	}
-	encoder.Close()
-	return buf.String(), nil
-}
-
-func decodeFromBase64(v interface{}, enc string) error {
-	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
 }
