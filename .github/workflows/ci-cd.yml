@@ -78,13 +78,11 @@ jobs:
     steps:
 
       - name: Tailscale
-        uses: tailscale/github-action@main
+        uses: tailscale/github-action@v2
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-          version: 1.34.1
-          # get keys here: https://login.tailscale.com/admin/settings/keys
-          # these will expire after 90 days
-          # be sure to enable reusable and ephemeral
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
 
       - name: Configure SSH
         run: |
@@ -92,8 +90,8 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/ssh.key
           chmod 600 ~/.ssh/ssh.key
           cat >>~/.ssh/config <<END
-          Host vps
-            HostName $(tailscale ip -6 vps)
+          Host services
+            HostName $(tailscale ip -4 services)
             User $SSH_USER
             IdentityFile ~/.ssh/ssh.key
             StrictHostKeyChecking no
