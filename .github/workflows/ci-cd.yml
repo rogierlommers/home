@@ -12,11 +12,17 @@ jobs:
 
   build-backend:
     runs-on: ubuntu-latest
+    env:
+      GO_VERSION: stable
+      CGO_ENABLED: 0
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Build
         run: GOOS=linux GOARCH=amd64 go build -o ./bin/home *.go
