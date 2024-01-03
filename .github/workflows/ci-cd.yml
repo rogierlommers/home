@@ -46,7 +46,7 @@ jobs:
       - uses: actions/download-artifact@main
         with:
           name: compiled-binary
-          path: ./bin/home/home
+          path: ./bin/home
 
       - name: List files in ./bin directory
         run: |
