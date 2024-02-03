@@ -11,6 +11,7 @@ import (
 	"github.com/rogierlommers/home/enyaq"
 	"github.com/rogierlommers/home/greedy"
 	"github.com/rogierlommers/home/homepage"
+	"github.com/rogierlommers/home/homewizard"
 	"github.com/rogierlommers/home/hue_exporter"
 	"github.com/rogierlommers/home/quicknote"
 	"github.com/sirupsen/logrus"
@@ -49,6 +50,7 @@ func main() {
 	enyaq.NewEnyaq(router, config)
 	quicknote.NewQuicknote(router, config)
 	hue_exporter.NewHue(router, config)
+	homewizard.NewHomewizardExporter(router, config)
 
 	greedy, err := greedy.NewGreedy(config)
 	if err != nil {
