@@ -55,7 +55,6 @@ func (c hueCollector) Describe(ch chan<- *prometheus.Desc) {
 
 func (c hueCollector) Collect(ch chan<- prometheus.Metric) {
 
-	// First collect information about all lights
 	lights, err := c.bridge.GetAllLights()
 	if err != nil {
 		logrus.Errorf("Failed to update lights: %v", err)
@@ -78,35 +77,4 @@ func (c hueCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 	c.lightState.Collect(ch)
 
-	// Then collect information about all sensors
-	// sensors, err := c.bridge.GetAllSensors()
-	// if err != nil {
-	// 	logrus.Errorf("Failed to update sensors: %v", err)
-	// 	return
-	// }
-
-	// for _, sensor := range sensors {
-
-	// 	if sensor.Name == "HomeAway" {
-	// 		// logrus.Infof("donderop, want sensor.name == \"HomeAway\"")
-	// 		continue
-	// 	}
-
-	// 	if sensor.Type == "CLIPGenericStatus" {
-	// 		// logrus.Infof("donderop, want sensor.modelID == \"CLIPGenericStatus\"")
-	// 		continue
-	// 	}
-
-	// 	if sensor.Type == "Daylight" {
-	// 		// logrus.Infof("donderop, want sensor.Type == \"Daylight\"")
-	// 		continue
-	// 	}
-
-	// 	if sensor.Type == "ZLLLightLevel" {
-	// 		continue
-	// 	}
-
-	// 	// spew.Dump(sensor)
-	// 	logrus.Infof("uniqueID: %s, modelID: %s, type: %s, name: %s, battery level: %d", sensor.UniqueID, sensor.ModelID, sensor.Type, sensor.Name, sensor.Config.Battery)
-	// }
 }
