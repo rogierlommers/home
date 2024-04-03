@@ -65,6 +65,7 @@ func main() {
 	logrus.Info("version of: January 3 - 2024")
 
 	// start serving
+	logrus.Infof("listening on %s", config.HostPort)
 	if err := http.ListenAndServe(config.HostPort, router); err != nil {
 		logrus.Fatal(err)
 	}

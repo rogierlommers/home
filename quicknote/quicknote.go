@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/config"
@@ -74,24 +75,28 @@ func sendMail(filename string, attachment []byte) error {
 
 	// first determine attachment
 	fileExtension := filepath.Ext(filename)
-	var subject = ""
+	var subject, body string
 
 	switch fileExtension {
 	case ".txt":
+		// this is the normal flow, when somebody posts just text
 		// we need to extract the text out of the text file
 		contents, err := os.ReadFile(tmpFilename)
 		if err != nil {
 			logrus.Error(err)
 		}
-		subject = fmt.Sprintf("Todo item: %s", contents)
+
+		subject, body = extractSubjectAndBody(string(contents))
+		subject = fmt.Sprintf("Todo item: %s", subject)
 	default:
+		// in all cases (both text and image files)
 		subject = fmt.Sprintf("Todo item: %s", filename)
 		mailer.Attach(tmpFilename)
 	}
 
 	// actual send mail
 	mailer.SetHeader("Subject", subject)
-	mailer.SetBody("text/html", defineBody(subject))
+	mailer.SetBody("text/html", defineBody(subject, body))
 
 	d := gomail.NewDialer(quickNote.smtpHost, quickNote.smtpPort, quickNote.smtpUsername, quickNote.smtpPassword)
 	d.SSL = false
@@ -103,7 +108,21 @@ func sendMail(filename string, attachment []byte) error {
 	return nil
 }
 
-func defineBody(s string) string {
-	body := fmt.Sprintf("<p><b>Subject:</b><br/>%s</p>", s)
+func defineBody(s string, b string) string {
+	body := fmt.Sprintf("<p><b>Subject:</b><br/>%s</p><p><b>Body:</b><br/>%s</p>", s, b)
 	return body
+}
+
+func extractSubjectAndBody(s string) (string, string) {
+	var subject, body string
+
+	if strings.Contains(s, "\n") {
+		parts := strings.Split(s, "\n")
+		if len(parts) > 1 {
+			subject = parts[0]
+			body = strings.Join(parts[1:], "\n")
+		}
+	}
+
+	return subject, body
 }
