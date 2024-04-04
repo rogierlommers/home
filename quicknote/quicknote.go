@@ -87,7 +87,6 @@ func sendMail(filename string, attachment []byte) error {
 		}
 
 		subject, body = extractSubjectAndBody(string(contents))
-		subject = fmt.Sprintf("Todo item: %s", subject)
 	default:
 		// in all cases (both text and image files)
 		subject = fmt.Sprintf("Todo item: %s", filename)
@@ -95,7 +94,7 @@ func sendMail(filename string, attachment []byte) error {
 	}
 
 	// actual send mail
-	mailer.SetHeader("Subject", subject)
+	mailer.SetHeader("Subject", fmt.Sprintf("Todo item: %s", subject))
 	mailer.SetBody("text/html", defineBody(subject, body))
 
 	d := gomail.NewDialer(quickNote.smtpHost, quickNote.smtpPort, quickNote.smtpUsername, quickNote.smtpPassword)
