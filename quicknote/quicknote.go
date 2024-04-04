@@ -117,11 +117,17 @@ func extractSubjectAndBody(s string) (string, string) {
 	var subject, body string
 
 	if strings.Contains(s, "\n") {
+		// meerdere regels, dus eerste regel als subject
+		// en de rest als body
 		parts := strings.Split(s, "\n")
 		if len(parts) > 1 {
 			subject = parts[0]
 			body = strings.Join(parts[1:], "\n")
 		}
+	} else {
+		// Oneliner, dus body en topic zijn beide gelijk
+		subject = s
+		body = s
 	}
 
 	return subject, body
