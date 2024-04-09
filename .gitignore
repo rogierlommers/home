@@ -2,6 +2,7 @@
 backend.secrets.sh
 greedy.db
 bin
+.idea/
 
 # Binaries for programs and plugins
 *.exe

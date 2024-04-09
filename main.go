@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rogierlommers/home/filecount"
 	"net/http"
 	"time"
 
@@ -26,7 +27,7 @@ func main() {
 	logrus.SetFormatter(formatter)
 
 	// read config and make globally available
-	config := config.ReadConfig()
+	cfg := config.ReadConfig()
 
 	// create router
 	gin.SetMode(gin.ReleaseMode)
@@ -45,28 +46,29 @@ func main() {
 	}))
 
 	// initialize all services
-	homepage.Add(router, config)
-	enyaq.NewEnyaq(router, config)
-	quicknote.NewQuicknote(router, config)
-	hue_exporter.NewHue(router, config)
+	filecount.NewFileCounter(router, cfg)
+	homepage.Add(router, cfg)
+	enyaq.NewEnyaq(router, cfg)
+	quicknote.NewQuicknote(router, cfg)
+	hue_exporter.NewHue(router, cfg)
 
-	greedy, err := greedy.NewGreedy(config)
+	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	defer greedy.CloseArticleDB()
+	defer greedyInstance.CloseArticleDB()
 
 	// schedule cleanup and routes
-	greedy.AddRoutes(router)
-	greedy.ScheduleCleanup()
-	logrus.Infof("bucket initialized with %d records", greedy.Count())
+	greedyInstance.AddRoutes(router)
+	greedyInstance.ScheduleCleanup()
+	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
 
 	// show version number
 	logrus.Info("version of: January 3 - 2024")
 
 	// start serving
-	logrus.Infof("listening on %s", config.HostPort)
-	if err := http.ListenAndServe(config.HostPort, router); err != nil {
+	logrus.Infof("listening on %s", cfg.HostPort)
+	if err := http.ListenAndServe(cfg.HostPort, router); err != nil {
 		logrus.Fatal(err)
 	}
 
