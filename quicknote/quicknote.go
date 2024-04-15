@@ -89,7 +89,7 @@ func sendMail(filename string, attachment []byte) error {
 		subject, body = extractSubjectAndBody(string(contents))
 	default:
 		// in all cases (both text and image files)
-		subject = fmt.Sprintf("Todo item: %s", filename)
+		subject = filename
 		mailer.Attach(tmpFilename)
 	}
 
