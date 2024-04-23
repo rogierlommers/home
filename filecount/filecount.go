@@ -1,13 +1,14 @@
 package filecount
 
 import (
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rogierlommers/home/config"
 	"github.com/sirupsen/logrus"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 var pollInterval = 3600
@@ -31,6 +32,10 @@ func NewFileCounter(router *gin.Engine, cfg config.AppConfig) {
 
 	go func() {
 		for {
+			// for debugging purposes
+			logrus.Info("running filecounter")
+
+			// do the actual counting
 			err := countFiles(cfg.FileCounterDrive, filesInShareDrive)
 			if err != nil {
 				logrus.Errorf("error counting fileCounterDrive: %s", err)
@@ -61,6 +66,7 @@ func countFiles(d string, gauge prometheus.Gauge) error {
 		return err
 	}
 
+	logrus.Infof("walked %s, results: %d", d, counter)
 	gauge.Set(float64(counter))
 	return nil
 }
