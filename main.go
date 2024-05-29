@@ -1,19 +1,21 @@
 package main
 
 import (
-	"github.com/rogierlommers/home/filecount"
 	"net/http"
 	"time"
+
+	"github.com/rogierlommers/home/internal/filecount"
+	"github.com/rogierlommers/home/internal/prom_error"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rogierlommers/home/config"
-	"github.com/rogierlommers/home/enyaq"
-	"github.com/rogierlommers/home/greedy"
-	"github.com/rogierlommers/home/homepage"
-	"github.com/rogierlommers/home/hue_exporter"
-	"github.com/rogierlommers/home/quicknote"
+	"github.com/rogierlommers/home/internal/config"
+	"github.com/rogierlommers/home/internal/enyaq"
+	"github.com/rogierlommers/home/internal/greedy"
+	"github.com/rogierlommers/home/internal/homepage"
+	"github.com/rogierlommers/home/internal/hue_exporter"
+	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,6 +27,9 @@ func main() {
 	formatter.DisableTimestamp = true
 
 	logrus.SetFormatter(formatter)
+
+	// init package for logging errors
+	prom_error.InitPromError()
 
 	// read config and make globally available
 	cfg := config.ReadConfig()
@@ -64,7 +69,7 @@ func main() {
 	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
 
 	// show version number
-	logrus.Info("version of: January 3 - 2024")
+	logrus.Info("version of: May 29 - 2024")
 
 	// start serving
 	logrus.Infof("listening on %s", cfg.HostPort)

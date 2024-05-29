@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

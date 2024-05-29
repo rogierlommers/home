@@ -2,7 +2,7 @@ package homepage
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/internal/config"
 )
 
 func Add(router *gin.Engine, cfg config.AppConfig) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

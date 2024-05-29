@@ -1,6 +1,7 @@
 package enyaq
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -10,7 +11,8 @@ import (
 	"github.com/evcc-io/evcc/vehicle/vag/service"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/internal/config"
+	"github.com/rogierlommers/home/internal/prom_error"
 )
 
 // | Value| Plugged-in | Charging | Explanation                                                                                  |
@@ -71,7 +73,7 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 			if err == nil {
 				ts, err := service.TokenRefreshServiceTokenSource(logHandler, skoda.TRSParams, connect.AuthParams, cfg.EnyaqUsername, cfg.EnyaqPassword)
 				if err != nil {
-					log.Print("TokenRefresh error: ", err)
+					prom_error.LogError(fmt.Sprintf("TokenRefresh error: %s", err))
 					time.Sleep(time.Duration(pollInterval) * time.Second)
 					continue
 				}
@@ -84,21 +86,21 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 
 			rangeKm, err := provider.Range()
 			if err != nil {
-				log.Print("Range Error: ", err)
+				prom_error.LogError(fmt.Sprintf("range error: %s", err))
 			} else {
 				evRange.Set(float64(rangeKm))
 			}
 
 			soc, err := provider.Soc()
 			if err != nil {
-				log.Print("SoC error: ", err)
+				prom_error.LogError(fmt.Sprintf("soc error: %s", err))
 			} else {
 				evSoc.Set(soc)
 			}
 
 			statusString, err := provider.Status()
 			if err != nil {
-				log.Print("Status error: ", err)
+				prom_error.LogError(fmt.Sprintf("status error: %s", err))
 			} else {
 				switch statusString.String() {
 				case "":
@@ -127,7 +129,7 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 
 			odometer, err := provider.Odometer()
 			if err != nil {
-				log.Print("Odometer error: ", err)
+				prom_error.LogError(fmt.Sprintf("odometer error: %s", err))
 			} else {
 				evOdometer.Set(odometer)
 			}

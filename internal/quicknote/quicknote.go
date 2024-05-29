@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/home/config"
+	"github.com/rogierlommers/home/internal/config"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/gomail.v2"
