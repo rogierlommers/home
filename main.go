@@ -56,6 +56,7 @@ func main() {
 	enyaq.NewEnyaq(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
 	hue_exporter.NewHue(router, cfg)
+	prom_error.TriggerErrorHandler(router)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {

@@ -73,7 +73,7 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 			if err == nil {
 				ts, err := service.TokenRefreshServiceTokenSource(logHandler, skoda.TRSParams, connect.AuthParams, cfg.EnyaqUsername, cfg.EnyaqPassword)
 				if err != nil {
-					prom_error.LogError(fmt.Sprintf("TokenRefresh error: %s", err))
+					prom_error.LogError(fmt.Sprintf("TokenRefresh error: %s", err), "enyac")
 					time.Sleep(time.Duration(pollInterval) * time.Second)
 					continue
 				}
@@ -86,21 +86,21 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 
 			rangeKm, err := provider.Range()
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("range error: %s", err))
+				prom_error.LogError(fmt.Sprintf("range error: %s", err), "enyac")
 			} else {
 				evRange.Set(float64(rangeKm))
 			}
 
 			soc, err := provider.Soc()
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("soc error: %s", err))
+				prom_error.LogError(fmt.Sprintf("soc error: %s", err), "enyac")
 			} else {
 				evSoc.Set(soc)
 			}
 
 			statusString, err := provider.Status()
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("status error: %s", err))
+				prom_error.LogError(fmt.Sprintf("status error: %s", err), "enyac")
 			} else {
 				switch statusString.String() {
 				case "":
@@ -129,7 +129,7 @@ func NewEnyaq(router *gin.Engine, cfg config.AppConfig) {
 
 			odometer, err := provider.Odometer()
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("odometer error: %s", err))
+				prom_error.LogError(fmt.Sprintf("odometer error: %s", err), "enyac")
 			} else {
 				evOdometer.Set(odometer)
 			}

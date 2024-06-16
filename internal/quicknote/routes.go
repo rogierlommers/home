@@ -20,7 +20,7 @@ func sendMailHandler(c *gin.Context) {
 	// read attachment; pure text will be added as .txt file
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		prom_error.LogError(fmt.Sprintf("error parsing formFile: %s", err))
+		prom_error.LogError(fmt.Sprintf("error parsing formFile: %s", err), "enyac")
 		return
 	}
 	defer file.Close()
@@ -28,7 +28,7 @@ func sendMailHandler(c *gin.Context) {
 	// read file into buffer
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
-		prom_error.LogError(fmt.Sprintf("error reading file into buffer: %s", err))
+		prom_error.LogError(fmt.Sprintf("error reading file into buffer: %s", err), "enyac")
 		return
 	}
 

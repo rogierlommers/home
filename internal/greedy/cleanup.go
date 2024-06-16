@@ -35,7 +35,7 @@ func (g Greedy) cleanUp(numberToKeep int) int {
 			if count > numberToKeep {
 				err := c.Delete()
 				if err != nil {
-					prom_error.LogError(fmt.Sprintf("error deleting record while cleanup: %q", err))
+					prom_error.LogError(fmt.Sprintf("error deleting record while cleanup: %q", err), "enyac")
 				} else {
 					deleted++
 				}

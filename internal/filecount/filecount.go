@@ -37,13 +37,13 @@ func NewFileCounter(router *gin.Engine, cfg config.AppConfig) {
 			// do the actual counting
 			err := countFiles(cfg.FileCounterDrive, filesInShareDrive)
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("error counting fileCounterDrive: %s", err))
+				prom_error.LogError(fmt.Sprintf("error counting fileCounterDrive: %s", err), "enyac")
 				time.Sleep(300 * time.Second)
 			}
 
 			err = countFiles(cfg.FileCounterTMP, filesInShareTMP)
 			if err != nil {
-				prom_error.LogError(fmt.Sprintf("error counting fileCounterTMP: %s", err))
+				prom_error.LogError(fmt.Sprintf("error counting fileCounterTMP: %s", err), "enyac")
 				time.Sleep(300 * time.Second)
 			}
 
