@@ -32,7 +32,6 @@ func displayHome(c *gin.Context) {
 		  <p>
 		    <em>Everything you need at home...</em>
 			<ul>
-				<li><a href="/metrics">prometheus metrics</a></li>
 				<li><a href="/api/greedy/rss">greedy rss url</a></li>
 			</ul>
 		  </p>

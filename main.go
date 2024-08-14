@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
@@ -29,9 +28,6 @@ func main() {
 	// create router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-
-	// add prometheus handler
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
