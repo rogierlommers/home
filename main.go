@@ -4,17 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rogierlommers/home/internal/filecount"
-	"github.com/rogierlommers/home/internal/prom_error"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rogierlommers/home/internal/config"
-	"github.com/rogierlommers/home/internal/enyaq"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
-	"github.com/rogierlommers/home/internal/hue_exporter"
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
 )
@@ -27,9 +22,6 @@ func main() {
 	formatter.DisableTimestamp = true
 
 	logrus.SetFormatter(formatter)
-
-	// init package for logging errors
-	prom_error.InitPromError()
 
 	// read config and make globally available
 	cfg := config.ReadConfig()
@@ -51,12 +43,8 @@ func main() {
 	}))
 
 	// initialize all services
-	filecount.NewFileCounter(router, cfg)
 	homepage.Add(router, cfg)
-	enyaq.NewEnyaq(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
-	hue_exporter.NewHue(router, cfg)
-	prom_error.TriggerErrorHandler(router)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {

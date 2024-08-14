@@ -1,11 +1,9 @@
 package greedy
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/rogierlommers/home/internal/prom_error"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +33,7 @@ func (g Greedy) cleanUp(numberToKeep int) int {
 			if count > numberToKeep {
 				err := c.Delete()
 				if err != nil {
-					prom_error.LogError(fmt.Sprintf("error deleting record while cleanup: %q", err), "enyac")
+					logrus.Errorf("error deleting record while cleanup: %q", err)
 				} else {
 					deleted++
 				}

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/home/internal/prom_error"
+	"github.com/sirupsen/logrus"
 )
 
 // response type to frontend
@@ -20,7 +20,7 @@ func sendMailHandler(c *gin.Context) {
 	// read attachment; pure text will be added as .txt file
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		prom_error.LogError(fmt.Sprintf("error parsing formFile: %s", err), "enyac")
+		logrus.Errorf("error parsing formFile: %s", err)
 		return
 	}
 	defer file.Close()
@@ -28,7 +28,7 @@ func sendMailHandler(c *gin.Context) {
 	// read file into buffer
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
-		prom_error.LogError(fmt.Sprintf("error reading file into buffer: %s", err), "enyac")
+		logrus.Errorf("error reading file into buffer: %s", err)
 		return
 	}
 
