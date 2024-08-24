@@ -113,9 +113,20 @@ func (a *Article) Scrape() error {
 	// scrape html
 	s, err := goscraper.Scrape(a.URL, 10)
 	if err != nil {
+		// something bad happened, let's use the url
 		a.Title = fmt.Sprintf("[Greedy] %s", a.URL)
 	} else {
-		a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
+		// scraping went okay, we can use title
+
+		// exception for dumpert
+		if s.Preview.Title == "Just a moment..." {
+			a.Title = fmt.Sprintf("[Greedy] dumpert video: %s", a.URL)
+
+		} else {
+			// in the end, pick the scraped title
+			a.Title = fmt.Sprintf("[Greedy] %s", s.Preview.Title)
+		}
+
 	}
 
 	// debugging info
