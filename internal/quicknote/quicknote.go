@@ -94,7 +94,7 @@ func sendMail(filename string, attachment []byte) error {
 	}
 
 	// actual send mail
-	mailer.SetHeader("Subject", fmt.Sprintf("Todo item: %s", subject))
+	mailer.SetHeader("Subject", fmt.Sprintf("☑️: %s", subject))
 	mailer.SetBody("text/html", defineBody(subject, body))
 
 	d := gomail.NewDialer(quickNote.smtpHost, quickNote.smtpPort, quickNote.smtpUsername, quickNote.smtpPassword)
