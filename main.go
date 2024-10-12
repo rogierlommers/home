@@ -9,8 +9,10 @@ import (
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
+	"github.com/rogierlommers/home/internal/message_webhook"
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
+	gindump "github.com/tpkeeper/gin-dump"
 )
 
 func main() {
@@ -28,6 +30,7 @@ func main() {
 	// create router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
+	router.Use(gindump.Dump())
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -41,6 +44,7 @@ func main() {
 	// initialize all services
 	homepage.Add(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
+	message_webhook.Add(router, cfg)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
