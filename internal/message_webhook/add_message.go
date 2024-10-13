@@ -1,6 +1,7 @@
 package message_webhook
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -36,7 +37,8 @@ func addMessage(c *gin.Context) {
 	var f incomingMessage
 	err := c.ShouldBindJSON(&f)
 	if err != nil {
-		logrus.Errorf("unable to read incoming data into struct: %s", err)
+		logrus.Errorf("unmarshall error: %s", err)
+		fmt.Print(c.GetRawData())
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
