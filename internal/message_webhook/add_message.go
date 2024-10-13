@@ -41,17 +41,19 @@ func addMessage(c *gin.Context) {
 		return
 	}
 
-	// add message to in-memory queue
-	logrus.Infof("fresh new numer: %d", len(f))
-	// x := message{
-	// 	Timestamp: time.Now(),
-	// 	Message:   f.Message,
-	// 	ID:        randomString(10),
-	// }
-	// cache.Add(x)
+	// add message(s) to in-memory queue
+	// please note: this is a slice of messages
+	for _, v := range f {
+		x := message{
+			Timestamp: time.Now(),
+			Message:   v.Message,
+			ID:        randomString(10),
+		}
+		cache.Add(x)
+	}
 
 	// log and okay
-	// c.IndentedJSON(http.StatusCreated, x)
+	c.IndentedJSON(http.StatusCreated, "thanks!")
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
