@@ -1,7 +1,6 @@
 package message_webhook
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -34,25 +33,25 @@ type incomingMessage struct {
 func addMessage(c *gin.Context) {
 
 	// read incoming message
-	var f incomingMessage
+	var f []incomingMessage
 	err := c.ShouldBindJSON(&f)
 	if err != nil {
 		logrus.Errorf("unmarshall error: %s", err)
-		fmt.Print(c.GetRawData())
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	// add message to in-memory queue
-	x := message{
-		Timestamp: time.Now(),
-		Message:   f.Message,
-		ID:        randomString(10),
-	}
-	cache.Add(x)
+	logrus.Infof("fresh new numer: %d", len(f))
+	// x := message{
+	// 	Timestamp: time.Now(),
+	// 	Message:   f.Message,
+	// 	ID:        randomString(10),
+	// }
+	// cache.Add(x)
 
 	// log and okay
-	c.IndentedJSON(http.StatusCreated, x)
+	// c.IndentedJSON(http.StatusCreated, x)
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
