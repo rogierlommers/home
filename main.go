@@ -12,7 +12,6 @@ import (
 	"github.com/rogierlommers/home/internal/message_webhook"
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
-	gindump "github.com/tpkeeper/gin-dump"
 )
 
 func main() {
@@ -30,7 +29,6 @@ func main() {
 	// create router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.Use(gindump.Dump())
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
