@@ -19,7 +19,6 @@ func displayRSS(ginCTX *gin.Context) {
 	}
 
 	for _, cachedItem := range cache.GetElements() {
-		logrus.Infof("item: %s", cachedItem.(message).Message)
 		newItem := feeds.Item{
 			Title: cachedItem.(message).Message,
 			// Link:    &feeds.Link{Href: a.URL},
