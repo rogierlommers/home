@@ -20,8 +20,8 @@ func displayRSS(ginCTX *gin.Context) {
 
 	for _, cachedItem := range cache.GetElements() {
 		newItem := feeds.Item{
-			Title: cachedItem.(message).Message,
-			// Link:    &feeds.Link{Href: a.URL},
+			Title:   cachedItem.(message).Message,
+			Link:    &feeds.Link{Href: "https://dummy.url"},
 			Created: cachedItem.(message).Timestamp,
 			Id:      cachedItem.(message).ID,
 		}
