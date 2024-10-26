@@ -49,7 +49,7 @@ func addMessage(c *gin.Context) {
 			Message:   v.Message,
 			ID:        randomString(10),
 		}
-		logrus.Infof("added item: %s", err)
+		logrus.Infof("added item: %s", v.Message)
 		cache.Add(x)
 	}
 
