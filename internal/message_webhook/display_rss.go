@@ -35,5 +35,6 @@ func displayRSS(ginCTX *gin.Context) {
 		return
 	}
 
+	logrus.Infof("crawler came by....%d items in feed", len(feed.Items))
 	ginCTX.Writer.Write([]byte(rss))
 }
