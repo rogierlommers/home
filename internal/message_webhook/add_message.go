@@ -49,10 +49,12 @@ func addMessage(c *gin.Context) {
 			Message:   v.Message,
 			ID:        randomString(10),
 		}
+		logrus.Infof("added item: %s", err)
 		cache.Add(x)
 	}
 
 	// log and okay
+	logrus.Infof("done, %d item(s) added", len(f))
 	c.IndentedJSON(http.StatusCreated, "thanks!")
 }
 
