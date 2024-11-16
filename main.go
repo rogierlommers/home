@@ -9,7 +9,6 @@ import (
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
-	"github.com/rogierlommers/home/internal/message_webhook"
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
 )
@@ -42,7 +41,6 @@ func main() {
 	// initialize all services
 	homepage.Add(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
-	message_webhook.Add(router, cfg)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
@@ -56,7 +54,7 @@ func main() {
 	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
 
 	// show version number
-	logrus.Info("version of: May 29 - 2024")
+	logrus.Info("version of: Nov 16 - 2024")
 
 	// start serving
 	logrus.Infof("listening on %s", cfg.HostPort)
