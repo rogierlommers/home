@@ -56,42 +56,34 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
 }
 
 // sendMail sends an email
-// filename is a string with the filename
-// attachment is a []byte
-func sendMail(filename string, attachment []byte) error {
-
-	// safe file to tmp location
-	tmpFilename := fmt.Sprintf("/tmp/%s", filename)
-	err := os.WriteFile(tmpFilename, attachment, 0777)
-	if err != nil {
-		return err
-	}
-	defer os.Remove(tmpFilename)
+func sendMail(filename string, attachment []byte, optionalText string, fileAttached bool) error {
 
 	// initialise mailer. Uses this: https://mailtrap.io/blog/golang-send-email/
 	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", quickNote.fromEmail)
 	mailer.SetHeader("To", quickNote.targetEmail)
 
-	// first determine attachment
-	fileExtension := filepath.Ext(filename)
+	if fileAttached {
+		// safe file to tmp location
+		tmpFilename := fmt.Sprintf("/tmp/%s", filename)
+		err := os.WriteFile(tmpFilename, attachment, 0777)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(tmpFilename)
+
+		// first determine attachment
+		fileExtension := filepath.Ext(filename)
+		if fileExtension != ".txt" {
+			mailer.Attach(tmpFilename)
+		}
+	}
+
+	// continue sending mail
 	var subject, body string
 
-	switch fileExtension {
-	case ".txt":
-		// this is the normal flow, when somebody posts just text
-		// we need to extract the text out of the text file
-		contents, err := os.ReadFile(tmpFilename)
-		if err != nil {
-			logrus.Error(err)
-		}
-
-		subject, body = extractSubjectAndBody(string(contents))
-	default:
-		// in all cases (both text and image files)
-		subject = filename
-		mailer.Attach(tmpFilename)
-	}
+	subject = getFirstLine(optionalText)
+	body = optionalText
 
 	// actual send mail
 	mailer.SetHeader("Subject", fmt.Sprintf("☑️ %s", subject))
@@ -108,26 +100,15 @@ func sendMail(filename string, attachment []byte) error {
 }
 
 func defineBody(s string, b string) string {
+	b = strings.ReplaceAll(b, "\n", "<br/>")
 	body := fmt.Sprintf("<p><b>Subject:</b><br/>%s</p><p><b>Body:</b><br/>%s</p>", s, b)
 	return body
 }
 
-func extractSubjectAndBody(s string) (string, string) {
-	var subject, body string
-
-	if strings.Contains(s, "\n") {
-		// meerdere regels, dus eerste regel als subject
-		// en de rest als body
-		parts := strings.Split(s, "\n")
-		if len(parts) > 1 {
-			subject = parts[0]
-			body = strings.Join(parts[1:], "\n")
-		}
-	} else {
-		// Oneliner, dus body en topic zijn beide gelijk
-		subject = s
-		body = s
+func getFirstLine(s string) string {
+	lines := strings.Split(s, "\n")
+	if len(lines) > 0 {
+		return lines[0]
 	}
-
-	return subject, body
+	return "<< empty incoming text >>"
 }

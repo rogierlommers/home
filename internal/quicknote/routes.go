@@ -16,24 +16,47 @@ type response struct {
 }
 
 func sendMailHandler(c *gin.Context) {
+	var buf *bytes.Buffer
+	var fileAttached bool
 
 	// read attachment; pure text will be added as .txt file
 	file, header, err := c.Request.FormFile("file")
-	if err != nil {
+	switch err {
+	case nil:
+		defer file.Close()
+		fileAttached = true
+		// read file into buffer
+		buf = bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, file); err != nil {
+			logrus.Errorf("error reading file into buffer: %s", err)
+			return
+		}
+	case http.ErrMissingFile:
+		fileAttached = false
+		logrus.Info("no file attached")
+	default:
 		logrus.Errorf("error parsing formFile: %s", err)
 		return
 	}
-	defer file.Close()
 
-	// read file into buffer
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		logrus.Errorf("error reading file into buffer: %s", err)
-		return
+	// get optional text passed as text header
+	optionalText := c.Request.FormValue("text")
+
+	var (
+		subjectFilename string
+		fileContents    []byte
+	)
+
+	if fileAttached {
+		logrus.Infof("file: %s, size: %d", header.Filename, header.Size)
+		logrus.Infof("optional-text: %s", optionalText)
+		subjectFilename = header.Filename
+		fileContents = buf.Bytes()
 	}
 
 	// mail the file
-	if err := sendMail(header.Filename, buf.Bytes()); err != nil {
+	if err := sendMail(subjectFilename, fileContents, optionalText, fileAttached); err != nil {
+		logrus.Error(err)
 		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err.Error())})
 		return
 	}
