@@ -15,12 +15,8 @@ import (
 
 func main() {
 
-	// disable logrus timestamp
-	formatter := new(logrus.TextFormatter)
-	formatter.DisableColors = true
-	formatter.DisableTimestamp = true
-
-	logrus.SetFormatter(formatter)
+	// show version number
+	logrus.Info("version of: Dev 18 - 2024")
 
 	// read config and make globally available
 	cfg := config.ReadConfig()
@@ -52,9 +48,6 @@ func main() {
 	greedyInstance.AddRoutes(router)
 	greedyInstance.ScheduleCleanup()
 	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
-
-	// show version number
-	logrus.Info("version of: Nov 16 - 2024")
 
 	// start serving
 	logrus.Infof("listening on %s", cfg.HostPort)

@@ -95,7 +95,7 @@ func sendMail(filename string, attachment []byte, optionalText string, fileAttac
 		return err
 	}
 
-	logrus.Infof("Email succesfully sent")
+	logrus.Debugf("Email succesfully sent")
 	return nil
 }
 

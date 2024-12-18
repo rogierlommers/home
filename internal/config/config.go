@@ -20,9 +20,12 @@ func ReadConfig() AppConfig {
 
 	if strings.ToLower(os.Getenv("DEV")) == "true" {
 		c.HostPort = "127.0.0.1:3000"
-		logrus.Info("develoment mode")
+		logrus.Info("develoment mode, debug level logging enabled")
+		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		c.HostPort = ":3000"
+		logrus.Info("production mode, error level logging enabled")
+		logrus.SetLevel(logrus.ErrorLevel)
 	}
 
 	return c
