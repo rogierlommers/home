@@ -16,7 +16,7 @@ type response struct {
 }
 
 func sendMailHandler(c *gin.Context) {
-	var buf *bytes.Buffer
+	var buf = bytes.NewBuffer(nil)
 	var fileAttached bool
 
 	// read attachment; pure text will be added as .txt file
@@ -45,6 +45,9 @@ func sendMailHandler(c *gin.Context) {
 
 	// get optional text passed as text header
 	optionalText := c.Request.FormValue("text")
+	if optionalText == "" {
+		logrus.Debug("optional text is empty")
+	}
 
 	var (
 		subjectFilename string
@@ -61,10 +64,10 @@ func sendMailHandler(c *gin.Context) {
 	// mail the file
 	if err := sendMail(subjectFilename, fileContents, optionalText, fileAttached); err != nil {
 		logrus.Errorf("sendMail error: %s", err)
-		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err.Error())})
+		c.JSON(http.StatusInternalServerError, response{Msg: fmt.Sprintf("error: mail error: %s", err)})
 		return
 	}
 
 	// write happy flow response
-	c.JSON(200, response{Msg: "email succesfully sent"})
+	c.JSON(http.StatusOK, response{Msg: "email succesfully sent"})
 }
