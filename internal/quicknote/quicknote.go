@@ -17,18 +17,20 @@ import (
 var quickNote = Quicknote{}
 
 type Quicknote struct {
-	targetEmail  string
-	fromEmail    string
-	smtpHost     string
-	smtpUsername string
-	smtpPassword string
-	smtpPort     int
+	targetEmailPrivate string
+	targetEmailWork    string
+	fromEmail          string
+	smtpHost           string
+	smtpUsername       string
+	smtpPassword       string
+	smtpPort           int
 }
 
 func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
 
 	// get all environment vars
-	targetEmail := os.Getenv("QN_TARGET_EMAIL")
+	targetEmailPrivate := os.Getenv("QN_TARGET_EMAIL_PRIVATE")
+	targetEmailWork := os.Getenv("QN_TARGET_EMAIL_WORK")
 	fromEmail := os.Getenv("QN_FROM_EMAIL")
 	smtpHost := os.Getenv("QN_SMTP_HOST")
 	smtpUsername := os.Getenv("QN_SMTP_USERNAME")
@@ -45,12 +47,13 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
 
 	// initiale package state
 	quickNote = Quicknote{
-		targetEmail:  targetEmail,
-		fromEmail:    fromEmail,
-		smtpHost:     smtpHost,
-		smtpUsername: smtpUsername,
-		smtpPassword: smtpPassword,
-		smtpPort:     smtpPort,
+		targetEmailPrivate: targetEmailPrivate,
+		targetEmailWork:    targetEmailWork,
+		fromEmail:          fromEmail,
+		smtpHost:           smtpHost,
+		smtpUsername:       smtpUsername,
+		smtpPassword:       smtpPassword,
+		smtpPort:           smtpPort,
 	}
 
 }
@@ -58,10 +61,33 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
 // sendMail sends an email
 func sendMail(filename string, attachment []byte, optionalText string, fileAttached bool) error {
 
+	var target string
+
+	switch fileAttached {
+
+	case true:
+		// determine target email based on subjectFilename (attachment)
+		if strings.HasPrefix(filename, "w ") {
+			target = quickNote.targetEmailWork
+		} else {
+			target = quickNote.targetEmailPrivate
+		}
+
+	case false:
+		// determine target email based on text
+		if strings.HasPrefix(optionalText, "w ") {
+			target = quickNote.targetEmailWork
+		} else {
+			target = quickNote.targetEmailPrivate
+		}
+	}
+
+	logrus.Debugf("using address: %s", target)
+
 	// initialise mailer. Uses this: https://mailtrap.io/blog/golang-send-email/
 	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", quickNote.fromEmail)
-	mailer.SetHeader("To", quickNote.targetEmail)
+	mailer.SetHeader("To", target)
 
 	if fileAttached {
 		// safe file to tmp location
