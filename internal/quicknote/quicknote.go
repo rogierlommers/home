@@ -77,6 +77,7 @@ func sendMail(filename string, attachment []byte, optionalText string, fileAttac
 		// determine target email based on text
 		if strings.HasPrefix(optionalText, "w ") {
 			target = quickNote.targetEmailWork
+			optionalText = strings.TrimPrefix(optionalText, "w ")
 		} else {
 			target = quickNote.targetEmailPrivate
 		}
