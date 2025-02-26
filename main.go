@@ -15,9 +15,6 @@ import (
 
 func main() {
 
-	// show version number
-	logrus.Info("version of: Dev 18 - 2024")
-
 	// read config and make globally available
 	cfg := config.ReadConfig()
 
