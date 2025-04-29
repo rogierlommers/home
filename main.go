@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
+	"github.com/rogierlommers/home/internal/enrich"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/quicknote"
@@ -34,6 +35,7 @@ func main() {
 	// initialize all services
 	homepage.Add(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
+	enrich.NewEnrich(router, cfg)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
