@@ -67,7 +67,7 @@ func sendMail(filename string, attachment []byte, optionalText string, fileAttac
 
 	case true:
 		// determine target email based on subjectFilename (attachment)
-		if strings.HasPrefix(filename, "w ") {
+		if strings.HasPrefix(strings.ToLower(filename), "w ") {
 			target = quickNote.targetEmailWork
 			logrus.Debugf("before: %s", optionalText)
 			optionalText = strings.TrimPrefix(optionalText, "w ")
@@ -78,7 +78,7 @@ func sendMail(filename string, attachment []byte, optionalText string, fileAttac
 
 	case false:
 		// determine target email based on text
-		if strings.HasPrefix(optionalText, "w ") {
+		if strings.HasPrefix(strings.ToLower(optionalText), "w ") {
 			target = quickNote.targetEmailWork
 		} else {
 			target = quickNote.targetEmailPrivate
