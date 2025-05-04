@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/badoux/goscraper"
@@ -119,7 +120,7 @@ func (a *Article) Scrape() error {
 		// scraping went okay, we can use title
 
 		// exception for dumpert
-		if s.Preview.Title == "Just a moment..." {
+		if strings.Contains(a.URL, "dumpert.nl") {
 			a.Title = fmt.Sprintf("[Greedy] dumpert video: %s", a.URL)
 
 		} else {
