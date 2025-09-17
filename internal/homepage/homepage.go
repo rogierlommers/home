@@ -33,7 +33,6 @@ func displayHome(c *gin.Context) {
 		    <em>Everything you need at home...</em>
 			<ul>
 				<li><a href="/api/greedy/rss">greedy rss url</a></li>
-				<li><a href="/api/unifi">unifi callback-url</a></li>
 			</ul>
 		  </p>
 		</section>

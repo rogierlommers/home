@@ -10,7 +10,6 @@ import (
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/quicknote"
-	"github.com/rogierlommers/home/internal/unifi"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +34,6 @@ func main() {
 	// initialize all services
 	homepage.Add(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
-	unifi.NewUnifi(router, cfg)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
