@@ -7,10 +7,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
-	"github.com/rogierlommers/home/internal/enrich"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/quicknote"
+	"github.com/rogierlommers/home/internal/unifi"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +35,7 @@ func main() {
 	// initialize all services
 	homepage.Add(router, cfg)
 	quicknote.NewQuicknote(router, cfg)
-	enrich.NewEnrich(router, cfg)
+	unifi.NewUnifi(router, cfg)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
@@ -49,7 +49,7 @@ func main() {
 	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
 
 	// start serving
-	logrus.Infof("listening on %s", cfg.HostPort)
+	logrus.Infof("listening on http://%s", cfg.HostPort)
 	if err := http.ListenAndServe(cfg.HostPort, router); err != nil {
 		logrus.Fatal(err)
 	}
