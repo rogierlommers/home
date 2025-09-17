@@ -1,7 +1,7 @@
 package unifi
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,10 +16,11 @@ type response struct {
 
 func NewUnifi(router *gin.Engine, cfg config.AppConfig) {
 	router.POST("/api/unifi", unifiHandler)
+	router.POST("/api/unifi/", unifiHandler)
 }
 
 func unifiHandler(c *gin.Context) {
-	bodyBytes, err := ioutil.ReadAll(c.Request.Body)
+	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response{Msg: "failed to read request body"})
 		return
