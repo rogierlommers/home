@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
+	"github.com/sirupsen/logrus"
 )
 
 type response struct {
@@ -28,4 +29,6 @@ func unifiHandler(c *gin.Context) {
 		Msg:  "email successfully sent",
 		Body: string(bodyBytes),
 	})
+
+	logrus.Errorf("unifi webhook received: %s", string(bodyBytes))
 }
