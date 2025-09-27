@@ -9,6 +9,7 @@ import (
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
 	"github.com/rogierlommers/home/internal/homepage"
+	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
 )
@@ -32,14 +33,17 @@ func main() {
 	}))
 
 	// initialize all services
-	homepage.Add(router, cfg)
-	quicknote.NewQuicknote(router, cfg)
+	mailer := mailer.NewMailer(cfg)
+	homepage.Add(router, cfg, mailer)
+	quicknote.NewQuicknote(router, cfg, mailer)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	defer greedyInstance.CloseArticleDB()
+
+	mailer.JustLogSomething()
 
 	// schedule cleanup and routes
 	greedyInstance.AddRoutes(router)

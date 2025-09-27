@@ -1,143 +1,86 @@
 package quicknote
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
+	"path"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
-
+	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/gomail.v2"
 )
 
-var quickNote = Quicknote{}
-
-type Quicknote struct {
-	targetEmailPrivate string
-	targetEmailWork    string
-	fromEmail          string
-	smtpHost           string
-	smtpUsername       string
-	smtpPassword       string
-	smtpPort           int
+func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer) {
+	router.POST("/api/notes/send", sendMailHandler(m, cfg))
 }
 
-func NewQuicknote(router *gin.Engine, cfg config.AppConfig) {
+func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	// get all environment vars
-	targetEmailPrivate := os.Getenv("QN_TARGET_EMAIL_PRIVATE")
-	targetEmailWork := os.Getenv("QN_TARGET_EMAIL_WORK")
-	fromEmail := os.Getenv("QN_FROM_EMAIL")
-	smtpHost := os.Getenv("QN_SMTP_HOST")
-	smtpUsername := os.Getenv("QN_SMTP_USERNAME")
-	smtpPassword := os.Getenv("QN_SMTP_PASSWORD")
+		// request only contains bytes as attachment
+		// pure text will be added as .txt file
 
-	smtpPort, err := strconv.Atoi(os.Getenv("QN_SMTP_PORT"))
-	if err != nil {
-		logrus.Errorf("invalid smtp port provided (%s), default to zero", os.Getenv("QN_SMTP_PORT"))
-		smtpPort = 0
-	}
+		var memoryBuffer = bytes.NewBuffer(nil)
 
-	// add endpoints
-	router.POST("/api/notes/send", sendMailHandler)
-
-	// initiale package state
-	quickNote = Quicknote{
-		targetEmailPrivate: targetEmailPrivate,
-		targetEmailWork:    targetEmailWork,
-		fromEmail:          fromEmail,
-		smtpHost:           smtpHost,
-		smtpUsername:       smtpUsername,
-		smtpPassword:       smtpPassword,
-		smtpPort:           smtpPort,
-	}
-
-}
-
-// sendMail sends an email
-func sendMail(filename string, attachment []byte, optionalText string, fileAttached bool) error {
-
-	var target string
-
-	switch fileAttached {
-
-	case true:
-		// determine target email based on subjectFilename (attachment)
-		if strings.HasPrefix(strings.ToLower(filename), "w ") {
-			target = quickNote.targetEmailWork
-			logrus.Debugf("before: %s", optionalText)
-			optionalText = strings.TrimPrefix(optionalText, "w ")
-			logrus.Debugf("after: %s", optionalText)
-		} else {
-			target = quickNote.targetEmailPrivate
-		}
-
-	case false:
-		// determine target email based on text
-		if strings.HasPrefix(strings.ToLower(optionalText), "w ") {
-			target = quickNote.targetEmailWork
-		} else {
-			target = quickNote.targetEmailPrivate
-		}
-	}
-
-	logrus.Debugf("using address: %s", target)
-
-	// initialise mailer. Uses this: https://mailtrap.io/blog/golang-send-email/
-	mailer := gomail.NewMessage()
-	mailer.SetHeader("From", quickNote.fromEmail)
-	mailer.SetHeader("To", target)
-
-	if fileAttached {
-		// safe file to tmp location
-		tmpFilename := fmt.Sprintf("/tmp/%s", filename)
-		err := os.WriteFile(tmpFilename, attachment, 0777)
+		file, header, err := c.Request.FormFile("file")
 		if err != nil {
-			return err
+			logrus.Errorf("error parsing formFile: %s", err)
+			c.JSON(400, gin.H{"msg": "error parsing formFile"})
+			return
 		}
-		defer os.Remove(tmpFilename)
+		defer file.Close()
 
-		// first determine attachment
-		fileExtension := filepath.Ext(filename)
-		if fileExtension != ".txt" {
-			mailer.Attach(tmpFilename)
+		// read file into buffer
+		memoryBuffer = bytes.NewBuffer(nil)
+		if _, err := io.Copy(memoryBuffer, file); err != nil {
+			logrus.Errorf("error reading file into buffer: %s", err)
+			c.JSON(500, gin.H{"msg": "error reading file into buffer"})
+			return
 		}
+
+		// process text, strip extention in case of .txt file
+		// and only send the plain filename as subject
+		var (
+			subject       string
+			hasAttachment bool
+			tmpFilename   string
+		)
+
+		if header.Filename[len(header.Filename)-4:] == ".txt" {
+			subject = header.Filename[:len(header.Filename)-4]
+			hasAttachment = false
+		} else {
+			subject = header.Filename
+			hasAttachment = true
+			tmpFilename = path.Join(cfg.UploadTarget, header.Filename)
+
+			err := os.WriteFile(tmpFilename, memoryBuffer.Bytes(), 0777)
+			if err != nil {
+				c.JSON(500, gin.H{"msg": "error writing temp file"})
+				return
+			}
+		}
+
+		logrus.Debugf("subject: %s, file: %s, tempFilename: %s", subject, header.Filename, tmpFilename)
+		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
+
+		if hasAttachment {
+			if err := m.SendMail(subject, mailer.PrivateMail, body, []string{header.Filename}); err != nil {
+				logrus.Errorf("sendMail error: %s", err)
+				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
+				return
+			}
+		} else {
+			if err := m.SendMail(subject, mailer.PrivateMail, body, nil); err != nil {
+				logrus.Errorf("sendMail error: %s", err)
+				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
+				return
+			}
+		}
+
+		c.JSON(200, gin.H{"msg": "ok"})
 	}
-
-	// continue sending mail
-	var subject, body string
-
-	subject = getFirstLine(optionalText)
-	body = optionalText
-
-	// actual send mail
-	mailer.SetHeader("Subject", fmt.Sprintf("☑️ %s", subject))
-	mailer.SetBody("text/html", defineBody(subject, body))
-
-	d := gomail.NewDialer(quickNote.smtpHost, quickNote.smtpPort, quickNote.smtpUsername, quickNote.smtpPassword)
-	d.SSL = false
-	if err := d.DialAndSend(mailer); err != nil {
-		return err
-	}
-
-	logrus.Debugf("Email succesfully sent")
-	return nil
-}
-
-func defineBody(s string, b string) string {
-	b = strings.ReplaceAll(b, "\n", "<br/>")
-	body := fmt.Sprintf("<p><b>Subject:</b><br/>%s</p><p><b>Body:</b><br/>%s</p>", s, b)
-	return body
-}
-
-func getFirstLine(s string) string {
-	lines := strings.Split(s, "\n")
-	if len(lines) > 0 {
-		return lines[0]
-	}
-	return "<< empty incoming text >>"
 }
