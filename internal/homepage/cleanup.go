@@ -23,7 +23,7 @@ func scheduleCleanup(cfg config.AppConfig, mailer *mailer.Mailer) {
 		return
 	}
 
-	logrus.Infof("scheduled daily cleanup of old files in %s", cfg.UploadTarget)
+	logrus.Infof("scheduled %d-daily cleanup of old files in %s", cfg.CleanUpInDys, cfg.UploadTarget)
 	c.Start()
 }
 

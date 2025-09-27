@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -13,6 +14,7 @@ type AppConfig struct {
 	UploadTarget string
 	Username     string
 	Password     string
+	CleanUpInDys int
 }
 
 func ReadConfig() AppConfig {
@@ -24,6 +26,7 @@ func ReadConfig() AppConfig {
 		Password:     os.Getenv("PASSWORD"),
 	}
 
+	// host and port
 	if strings.ToLower(os.Getenv("DEV")) == "true" {
 		c.HostPort = "127.0.0.1:3000"
 		logrus.Info("develoment mode, debug level logging enabled")
@@ -32,6 +35,19 @@ func ReadConfig() AppConfig {
 		c.HostPort = ":3000"
 		logrus.Info("production mode, error level logging enabled")
 		logrus.SetLevel(logrus.ErrorLevel)
+	}
+
+	// cleanup days
+	if days := os.Getenv("CLEANUP_DAYS"); days != "" {
+		var err error
+		_, err = fmt.Sscanf(days, "%d", &c.CleanUpInDys)
+		if err != nil {
+			logrus.Errorf("invalid CLEANUP_DAYS value, defaulting to 30 days: %v", err)
+			c.CleanUpInDys = 30
+		}
+	} else {
+		logrus.Error("invalid CLEANUP_DAYS value, defaulting to 30 days")
+		c.CleanUpInDys = 30
 	}
 
 	return c
