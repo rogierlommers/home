@@ -168,8 +168,8 @@ func login(cfg config.AppConfig) gin.HandlerFunc {
 		}
 
 		if credentials.Username == cfg.Username && credentials.Password == cfg.Password {
-			// Set authentication cookie (example: "auth" cookie with value "true")
-			c.SetCookie("auth", "true", 3600, "/", "", false, true)
+			// valid for 6 months
+			c.SetCookie("auth", "true", 15552000, "/", "", false, true)
 			c.String(200, "Login successful")
 			return
 		} else {
