@@ -1,6 +1,7 @@
 package homepage
 
 import (
+	"embed"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -14,7 +15,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer) {
+var staticFS embed.FS
+
+func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, staticHtmlFS embed.FS) {
+
+	// make the embedded filesystem available
+	staticFS = staticHtmlFS
+
+	// add routes
 	router.GET("/", displayHome)
 	router.POST("/api/upload", uploadFiles(cfg, mailer))
 	router.POST("/api/login", login(cfg))
@@ -26,7 +34,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer) {
 
 func displayHome(c *gin.Context) {
 	if !isAuthenticated(c) {
-		htmlBytes, err := os.ReadFile("internal/homepage/login.html")
+		htmlBytes, err := staticFS.ReadFile("static_html/login.html")
 		if err != nil {
 			c.String(500, "Failed to load login page")
 			return
@@ -36,7 +44,7 @@ func displayHome(c *gin.Context) {
 		return
 	}
 
-	htmlBytes, err := os.ReadFile("internal/homepage/homepage.html")
+	htmlBytes, err := staticFS.ReadFile("static_html/homepage.html")
 	if err != nil {
 		c.String(500, "Failed to load homepage")
 		return

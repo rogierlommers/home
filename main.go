@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"net/http"
 	"time"
 
@@ -13,6 +14,9 @@ import (
 	"github.com/rogierlommers/home/internal/quicknote"
 	"github.com/sirupsen/logrus"
 )
+
+//go:embed static_html/*
+var staticHtmlFS embed.FS
 
 func main() {
 
@@ -34,7 +38,7 @@ func main() {
 
 	// initialize all services
 	mailer := mailer.NewMailer(cfg)
-	homepage.Add(router, cfg, mailer)
+	homepage.Add(router, cfg, mailer, staticHtmlFS)
 	quicknote.NewQuicknote(router, cfg, mailer)
 
 	greedyInstance, err := greedy.NewGreedy(cfg)
