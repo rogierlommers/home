@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/sirupsen/logrus"
+	_ "modernc.org/sqlite"
 )
 
 type DB struct {
@@ -19,7 +19,7 @@ type EntryCount struct {
 }
 
 func InitStatsDB(cfg config.AppConfig) *DB {
-	db, err := sql.Open("sqlite3", cfg.StatsDB)
+	db, err := sql.Open("sqlite", cfg.StatsDB)
 	if err != nil {
 		logrus.Fatalf("failed to open db: %v", err)
 	}
