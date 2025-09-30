@@ -16,7 +16,8 @@ func scheduleCleanup(cfg config.AppConfig, mailer *mailer.Mailer) {
 
 	// schedule to run every day at 15:00
 	_, err := c.AddFunc("0 15 * * *", func() {
-		cleanupOldFiles(cfg.UploadTarget, 30*24*time.Hour, mailer)
+		// cleanup files older than cfg.CleanUpInDys days
+		cleanupOldFiles(cfg.UploadTarget, time.Duration(cfg.CleanUpInDys)*24*time.Hour, mailer)
 	})
 	if err != nil {
 		logrus.Errorf("failed to schedule cleanup: %v", err)
