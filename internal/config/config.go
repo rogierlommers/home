@@ -11,6 +11,7 @@ import (
 type AppConfig struct {
 	HostPort     string
 	GreedyFile   string
+	StatsDB      string
 	UploadTarget string
 	Username     string
 	Password     string
@@ -21,6 +22,7 @@ func ReadConfig() AppConfig {
 
 	c := AppConfig{
 		GreedyFile:   os.Getenv("GREEDY_FILE"),
+		StatsDB:      os.Getenv("STATS_DB"),
 		UploadTarget: os.Getenv("UPLOAD_TARGET"),
 		Username:     os.Getenv("USERNAME"),
 		Password:     os.Getenv("PASSWORD"),

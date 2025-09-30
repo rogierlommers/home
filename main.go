@@ -12,6 +12,7 @@ import (
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/rogierlommers/home/internal/quicknote"
+	"github.com/rogierlommers/home/internal/stats"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,6 +23,10 @@ func main() {
 
 	// read config and make globally available
 	cfg := config.ReadConfig()
+
+	// read config and make globally available
+	statsDB := stats.InitStatsDB(cfg)
+	defer statsDB.Close()
 
 	// create router
 	gin.SetMode(gin.ReleaseMode)
@@ -38,16 +43,14 @@ func main() {
 
 	// initialize all services
 	mailer := mailer.NewMailer(cfg)
-	homepage.Add(router, cfg, mailer, staticHtmlFS)
-	quicknote.NewQuicknote(router, cfg, mailer)
+	homepage.Add(router, cfg, mailer, staticHtmlFS, statsDB)
+	quicknote.NewQuicknote(router, cfg, mailer, statsDB)
 
-	greedyInstance, err := greedy.NewGreedy(cfg)
+	greedyInstance, err := greedy.NewGreedy(cfg, statsDB)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	defer greedyInstance.CloseArticleDB()
-
-	mailer.JustLogSomething()
 
 	// schedule cleanup and routes
 	greedyInstance.AddRoutes(router)

@@ -12,23 +12,25 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/mailer"
+	"github.com/rogierlommers/home/internal/stats"
 	"github.com/sirupsen/logrus"
 )
 
 var staticFS embed.FS
 
-func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, staticHtmlFS embed.FS) {
+func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, staticHtmlFS embed.FS, statsDB *stats.DB) {
 
 	// make the embedded filesystem available
 	staticFS = staticHtmlFS
 
 	// add routes
 	router.GET("/", displayHome)
-	router.POST("/api/upload", uploadFiles(cfg, mailer))
+	router.POST("/api/upload", uploadFiles(cfg, mailer, statsDB))
 	router.POST("/api/login", login(cfg))
 	router.GET("/api/logout", logout())
 	router.GET("/api/filelist", fileList(cfg))
 	router.GET("/api/download", downloadFile(cfg))
+	router.GET("/api/stats", statsHandler(statsDB))
 	scheduleCleanup(cfg, mailer)
 }
 
@@ -53,7 +55,7 @@ func displayHome(c *gin.Context) {
 	c.String(200, string(htmlBytes))
 }
 
-func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer) gin.HandlerFunc {
+func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer, stats *stats.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Parse the multipart form, with a max memory of 32 MB
 		if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
@@ -91,16 +93,13 @@ func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer) gin.HandlerFunc {
 		}
 
 		// start sending here
-		var subject, message, target string
+		var subject, message, target, statsSource string
 
 		if onlyUpload == "true" {
-			// no mailing
-			// subject = "New file(s) uploaded"
-			// message = "The following file(s) were uploaded:\n" + filepath.Join(uploaded...)
+			statsSource = "upload_only_upload"
 			logrus.Debugf("%d files uploaded without notification email", len(uploaded))
 
 		} else {
-			// mail with message
 			message = c.PostForm("message")
 			subject = c.PostForm("subject")
 			target = c.PostForm("targetEmail")
@@ -110,11 +109,17 @@ func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer) gin.HandlerFunc {
 			logrus.Debugf("target: %s", target)
 
 			// send mail
+			statsSource = fmt.Sprintf("upload_and_notify_%s", target)
 			if err := mailer.SendMail(subject, target, message, uploaded); err != nil {
 				logrus.Errorf("Failed to send notification email: %v", err)
 			} else {
 				logrus.Info("Notification email sent")
 			}
+		}
+
+		// increase stats
+		if err := stats.IncrementEntry(statsSource); err != nil {
+			logrus.Errorf("failed to increment upload_no_notify stat: %v", err)
 		}
 
 		c.String(200, "Files uploaded successfully: %v | notify: %s", uploaded, onlyUpload)
@@ -236,5 +241,16 @@ func downloadFile(cfg config.AppConfig) gin.HandlerFunc {
 		}
 
 		c.FileAttachment(filePath, filename)
+	}
+}
+
+func statsHandler(statsDB *stats.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		counts, err := statsDB.GetAllEntryCounts()
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to get stats"})
+			return
+		}
+		c.JSON(200, gin.H{"stats": counts})
 	}
 }

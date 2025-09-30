@@ -54,10 +54,6 @@ func NewMailer(cfg config.AppConfig) *Mailer {
 	}
 }
 
-func (m *Mailer) JustLogSomething() {
-	logrus.Infof("mailer initialized: %s", m.smtpHost)
-}
-
 func (m *Mailer) SendMail(subject string, target string, body string, attachments []string) error {
 	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", m.fromEmail)

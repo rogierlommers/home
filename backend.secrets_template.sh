@@ -7,6 +7,7 @@ QN_SMTP_USERNAME=xxxx
 QN_SMTP_PASSWORD=xxxx
 QN_SMTP_PORT=xxxx
 GREEDY_FILE=/tmp/home-service.bolt
+STATS_DB=/tmp/home-service-stats.db
 UPLOAD_TARGET=/Users/rlommers/projects/home/upload-target
 USERNAME=
 PASSWORD=

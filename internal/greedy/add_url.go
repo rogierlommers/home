@@ -98,6 +98,14 @@ func (g Greedy) AddArticle(c *gin.Context) {
 		return
 	}
 
+	// increment stats
+	if g.stats != nil {
+		err = g.stats.IncrementEntry("greedy")
+		if err != nil {
+			logrus.Errorf("failed to increment stats entry for greedy: %v", err)
+		}
+	}
+
 	// base64 encode the title
 	encoded := b64.StdEncoding.EncodeToString([]byte(newArticle.Title))
 

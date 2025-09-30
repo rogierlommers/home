@@ -125,6 +125,10 @@
       <div id="fileList">
         Loading...
       </div>
+      <h4>Statistics</h4>
+      <div id="statsChart" style="width:100%; max-width:100%; margin-bottom:2em;">
+        Loading statistics...
+      </div>
     </section>
 
     <script>
@@ -350,8 +354,49 @@
         return diffSec + ' sec ago';
       }
 
+      function renderStatsChart(stats) {
+        if (!stats || !stats.length) {
+          document.getElementById('statsChart').textContent = 'No statistics found.';
+          return;
+        }
+        // Match file list width
+        let table = `<table style="width:100%;table-layout:fixed;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="width:40%;text-align:left;">Source</th>
+              <th style="width:40%;text-align:left;">Bar</th>
+              <th style="width:20%;text-align:right;">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        const max = Math.max(...stats.map(s => s.count));
+        stats.forEach(s => {
+          const width = max ? (s.count / max * 100) : 0;
+          table += `<tr>
+            <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.source}</td>
+            <td>
+              <div style="background:#9b4dca;height:18px;width:${width}%;min-width:2px;display:inline-block;"></div>
+            </td>
+            <td style="text-align:right;">${s.count}</td>
+          </tr>`;
+        });
+        table += '</tbody></table>';
+        document.getElementById('statsChart').innerHTML = table;
+      }
+
+      function loadStats() {
+        fetch('/api/stats')
+          .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+          .then(data => renderStatsChart(data.stats))
+          .catch(() => {
+            document.getElementById('statsChart').textContent = 'Failed to load statistics.';
+          });
+      }
+
       // Initial load
       loadFileList();
+      loadStats();
     </script>
 
   </main>

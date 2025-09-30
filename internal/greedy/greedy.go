@@ -7,12 +7,14 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
+	"github.com/rogierlommers/home/internal/stats"
 	"github.com/sirupsen/logrus"
 )
 
 type Greedy struct {
-	db   *bolt.DB
-	open bool
+	db    *bolt.DB
+	stats *stats.DB
+	open  bool
 }
 
 const (
@@ -30,7 +32,7 @@ type Article struct {
 	Added time.Time
 }
 
-func NewGreedy(cfg config.AppConfig) (Greedy, error) {
+func NewGreedy(cfg config.AppConfig, stats *stats.DB) (Greedy, error) {
 	boltConfig := &bolt.Options{Timeout: 1 * time.Second}
 
 	db, err := bolt.Open(cfg.GreedyFile, 0600, boltConfig)
@@ -49,8 +51,9 @@ func NewGreedy(cfg config.AppConfig) (Greedy, error) {
 	})
 
 	return Greedy{
-		db:   db,
-		open: true,
+		db:    db,
+		stats: stats,
+		open:  true,
 	}, nil
 }
 

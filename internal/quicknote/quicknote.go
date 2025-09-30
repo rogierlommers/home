@@ -10,14 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/mailer"
+	"github.com/rogierlommers/home/internal/stats"
 	"github.com/sirupsen/logrus"
 )
 
-func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer) {
-	router.POST("/api/notes/send", sendMailHandler(m, cfg))
+func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, stats *stats.DB) {
+	router.POST("/api/notes/send", sendMailHandler(m, cfg, stats))
 }
 
-func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig) gin.HandlerFunc {
+func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// request only contains bytes as attachment
@@ -67,18 +68,26 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig) gin.HandlerFunc {
 		logrus.Debugf("subject: %s, file: %s, tempFilename: %s", subject, header.Filename, tmpFilename)
 		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
 
+		var statsSource string
 		if hasAttachment {
 			if err := m.SendMail(subject, mailer.PrivateMail, body, []string{header.Filename}); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
+			statsSource = "quicknotes_with_attachment"
 		} else {
 			if err := m.SendMail(subject, mailer.PrivateMail, body, nil); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
+			statsSource = "quicknotes_no_attachment"
+		}
+
+		// increment stats
+		if stats.IncrementEntry(statsSource) != nil {
+			logrus.Errorf("failed to increment quicknotes stat")
 		}
 
 		c.JSON(200, gin.H{"msg": "ok"})
