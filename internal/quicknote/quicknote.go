@@ -68,7 +68,11 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 		logrus.Debugf("subject: %s, file: %s, tempFilename: %s", subject, header.Filename, tmpFilename)
 		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
 
-		var statsSource string
+		var (
+			statsSource     string
+			responseMessage string
+		)
+
 		if hasAttachment {
 			if err := m.SendMail(subject, mailer.PrivateMail, body, []string{header.Filename}); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
@@ -76,6 +80,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 				return
 			}
 			statsSource = "quicknotes_with_attachment"
+			responseMessage = fmt.Sprintf("(%d bytes) note with attachment %s sent", len(memoryBuffer.Bytes()), header.Filename)
 		} else {
 			if err := m.SendMail(subject, mailer.PrivateMail, body, nil); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
@@ -83,6 +88,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 				return
 			}
 			statsSource = "quicknotes_no_attachment"
+			responseMessage = fmt.Sprintf("(%d bytes) note without attachment sent", len(body))
 		}
 
 		// increment stats
@@ -90,6 +96,6 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 			logrus.Errorf("failed to increment quicknotes stat")
 		}
 
-		c.JSON(200, gin.H{"msg": "ok"})
+		c.JSON(200, gin.H{"msg": responseMessage})
 	}
 }
