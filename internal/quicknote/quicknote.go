@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
@@ -65,6 +66,8 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 			}
 		}
 
+		targetEmail := determineTargetEmail(subject)
+
 		logrus.Debugf("subject: %s, file: %s, tempFilename: %s", subject, header.Filename, tmpFilename)
 		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
 
@@ -74,7 +77,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 		)
 
 		if hasAttachment {
-			if err := m.SendMail(subject, mailer.PrivateMail, body, []string{header.Filename}); err != nil {
+			if err := m.SendMail(subject, targetEmail, body, []string{header.Filename}); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
@@ -82,7 +85,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 			statsSource = "quicknotes_with_attachment"
 			responseMessage = fmt.Sprintf("(%d bytes) note with attachment %s sent", len(memoryBuffer.Bytes()), header.Filename)
 		} else {
-			if err := m.SendMail(subject, mailer.PrivateMail, body, nil); err != nil {
+			if err := m.SendMail(subject, targetEmail, body, nil); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
@@ -98,4 +101,16 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gi
 
 		c.JSON(200, gin.H{"msg": responseMessage})
 	}
+}
+
+// determine target email based on subject. Is subject starts with "w ",
+// then use work email, otherwise personal email
+func determineTargetEmail(s string) string {
+	subject := strings.ToLower(s)
+
+	if len(subject) >= 2 && subject[:2] == "w " {
+		return mailer.WorkMail
+	}
+
+	return mailer.PrivateMail
 }

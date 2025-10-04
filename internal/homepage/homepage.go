@@ -31,7 +31,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/api/filelist", fileList(cfg))
 	router.GET("/api/download", downloadFile(cfg))
 	router.GET("/api/stats", statsHandler(statsDB))
-	scheduleCleanup(cfg, mailer)
+	scheduleCleanup(cfg, statsDB)
 }
 
 func displayHome(c *gin.Context) {
