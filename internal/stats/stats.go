@@ -70,7 +70,7 @@ func (s *DB) GetEntryCount(source string) (int, error) {
 }
 
 func (s *DB) GetAllEntryCounts() ([]EntryCount, error) {
-	rows, err := s.db.Query(`SELECT source, count FROM entry_stats`)
+	rows, err := s.db.Query(`SELECT source, count FROM entry_stats ORDER BY source ASC`)
 	if err != nil {
 		return nil, err
 	}
