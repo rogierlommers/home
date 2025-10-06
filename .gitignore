@@ -9,6 +9,7 @@ upload-target/
 # db files
 home-service-stats.db
 home-service.bolt
+home-service.db
 
 # Binaries for programs and plugins
 *.exe

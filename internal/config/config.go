@@ -15,6 +15,7 @@ type AppConfig struct {
 	UploadTarget string
 	Username     string
 	Password     string
+	XHomeAPIKey  string
 	CleanUpInDys int
 }
 
@@ -26,6 +27,7 @@ func ReadConfig() AppConfig {
 		UploadTarget: os.Getenv("UPLOAD_TARGET"),
 		Username:     os.Getenv("USERNAME"),
 		Password:     os.Getenv("PASSWORD"),
+		XHomeAPIKey:  os.Getenv("X_HOME_API_KEY"),
 	}
 
 	// host and port

@@ -9,6 +9,7 @@ QN_SMTP_PORT=xxxx
 GREEDY_FILE=/tmp/home-service.bolt
 STATS_DB=/tmp/home-service-stats.db
 UPLOAD_TARGET=/Users/rlommers/projects/home/upload-target
+X_HOME_API_KEY=supersecretkey
 USERNAME=
 PASSWORD=
 CLEANUP_DAYS=1

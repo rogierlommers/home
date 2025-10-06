@@ -7,9 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func displayBookmarks(db *sqlitedb.DB) gin.HandlerFunc {
+func displayBookmarks(db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !isAuthenticated(c) {
+		apiKey := c.GetHeader("X-HOME-API-KEY")
+		if !isAuthenticated(c) && apiKey != XAPIkey {
 			c.String(401, "Unauthorized")
 			return
 		}
