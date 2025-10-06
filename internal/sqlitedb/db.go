@@ -14,7 +14,7 @@ type DB struct {
 }
 
 func InitDatabase(cfg config.AppConfig) *DB {
-	db, err := sql.Open("sqlite", cfg.StatsDB)
+	db, err := sql.Open("sqlite", cfg.Database)
 	if err != nil {
 		logrus.Fatalf("failed to open db: %v", err)
 	}
