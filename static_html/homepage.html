@@ -78,57 +78,99 @@
 
     <section class="container" id="examples">
       <h1 class="title">home service</h1>
-      <p>
-        <em>Everything you need at home...</em>
-      <ul>
-        <li><a href="/api/greedy/rss">Greedy RSS</a></li>
-        <li><a href="/api/logout">Logout</a></li>
-      </ul>
-      </p>
 
-      <h4>Upload a file</h4>
-      <form id="uploadForm" action="/api/upload" method="post" enctype="multipart/form-data">
-        <div style="display: flex; align-items: flex-start; gap: 16px;">
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
-            <label for="targetEmail">Target email address</label>
-            <select id="targetEmail" name="targetEmail">
-              <option value="private">Private</option>
-              <option value="work">Work</option>
+      <h4>Bookmarks</h4>
+      <div id="bookmarksTable" style="overflow-x:auto; margin-bottom:2em;">
+        Loading bookmarks...
+      </div>
+
+      <h4>Add Bookmark</h4>
+      <form id="addBookmarkForm" style="margin-bottom:2em;">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+          <div style="flex:1; min-width:180px;">
+            <label for="bmTitle">Title</label>
+            <input type="text" id="bmTitle" name="title" required />
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <label for="bmArg">URL</label>
+            <input type="url" id="bmArg" name="arg" required />
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <label for="bmCategory">Category</label>
+            <select id="bmCategory" name="category" required>
+              <option value="">Loading...</option>
             </select>
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" placeholder="Enter subject..." />
-            <label for="message">Description</label>
-            <textarea id="message" name="message" placeholder="Enter message..." rows="4" style="resize:vertical;"></textarea>
           </div>
-          <div style="flex: 0 0 220px; display: flex; flex-direction: column; align-items: stretch; gap: 8px;">
-            <div class="drop-zone" id="dropZone" style="padding: 18px; min-height: 60px;">
-              <span id="dropZoneText">Drag &amp; drop files<br>or click</span>
-              <input type="file" name="file" id="fileInput" multiple />
-            </div>
-            <div id="fileListPreview" style="font-size: 0.95em; min-height: 24px; margin-top: 4px;"></div>
+          <div style="flex:1; min-width:180px;">
+            <label for="bmAutocomplete">Autocomplete</label>
+            <input type="text" id="bmAutocomplete" name="autocomplete" />
           </div>
         </div>
-        <div id="progressContainer">
-          <div id="progressBar"></div>
-        </div>
-        <div style="height: 24px;"></div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <button type="submit" class="button">Upload</button>
-          <label style="margin-bottom:0;">
-            <input type="checkbox" id="onlyUploadCheckbox" name="onlyUpload" value="true" />
-            Only upload files
-          </label>
-        </div>
+        <button type="submit" class="button" style="margin-top:12px;">Add Bookmark</button>
+        <span id="addBookmarkStatus" style="margin-left:1em;"></span>
       </form>
-      <div id="uploadStatus"></div>
-      <h4>File list</h4>
-      <div id="fileList">
-        Loading...
+
+
+      <h4>
+        <button id="toggleUploads" style="font-size:1em;">►</button>
+        File uploads
+      </h4>
+      <div id="uploadsSection" style="display:none;">
+        <form id="uploadForm" action="/api/upload" method="post" enctype="multipart/form-data">
+          <div style="display: flex; align-items: flex-start; gap: 16px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+              <label for="targetEmail">Target email address</label>
+              <select id="targetEmail" name="targetEmail">
+                <option value="private">Private</option>
+                <option value="work">Work</option>
+              </select>
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" name="subject" placeholder="Enter subject..." />
+              <label for="message">Description</label>
+              <textarea id="message" name="message" placeholder="Enter message..." rows="4" style="resize:vertical;"></textarea>
+            </div>
+            <div style="flex: 0 0 220px; display: flex; flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="drop-zone" id="dropZone" style="padding: 18px; min-height: 60px;">
+                <span id="dropZoneText">Drag &amp; drop files<br>or click</span>
+                <input type="file" name="file" id="fileInput" multiple />
+              </div>
+              <div id="fileListPreview" style="font-size: 0.95em; min-height: 24px; margin-top: 4px;"></div>
+            </div>
+          </div>
+          <div id="progressContainer">
+            <div id="progressBar"></div>
+          </div>
+          <div style="height: 24px;"></div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button type="submit" class="button">Upload</button>
+            <label style="margin-bottom:0;">
+              <input type="checkbox" id="onlyUploadCheckbox" name="onlyUpload" value="true" />
+              Only upload files
+            </label>
+          </div>
+        </form>
+        <div id="uploadStatus"></div>
       </div>
-      <h4>Statistics</h4>
-      <div id="statsChart" style="width:100%; max-width:100%; margin-bottom:2em;">
-        Loading statistics...
+
+      <h4>
+        <button id="toggleFileList" style="font-size:1em;">►</button>
+        File list
+      </h4>
+      <div id="fileListSection" style="display:none;">
+        <div id="fileList">
+          Loading...
+        </div>
       </div>
+      <h4>
+        <button id="toggleStats" style="font-size:1em;">►</button>
+        Statistics
+      </h4>
+      <div id="statsSection" style="width:100%; max-width:100%; margin-bottom:2em; display:none;">
+        <div id="statsChart">
+          Loading statistics...
+        </div>
+      </div>
+
     </section>
 
     <script>
@@ -394,9 +436,202 @@
           });
       }
 
+      function loadBookmarksTable() {
+        fetch('/api/bookmarks')
+          .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+          .then(data => {
+            console.log("Bookmarks API data:", data); // <-- Print the data to the console
+            renderBookmarksTable(data);
+          })
+          .catch(() => {
+            document.getElementById('bookmarksTable').textContent = 'Failed to load bookmarks.';
+          });
+      }
+
+      function renderBookmarksTable(data) {
+        if (!data || !data.items) {
+          console.warn("No bookmarks data or items:", data);
+          document.getElementById('bookmarksTable').textContent = 'No bookmarks found.';
+          return;
+        }
+        const items = data.items;
+        console.log("Rendering bookmarks for items:", items);
+        console.log("Current categoryIdToName mapping:", categoryIdToName);
+
+        // Generate unique category names from items using the mapping
+        const categories = [
+          ...new Set(
+            items
+              .map(item => categoryIdToName[item.category_id])
+              .filter(Boolean)
+          )
+        ];
+        console.log("Categories for table:", categories);
+
+        // Group items by category name
+        const grouped = {};
+        categories.forEach(cat => grouped[cat] = []);
+        items.forEach(item => {
+          const catName = categoryIdToName[item.category_id];
+          if (grouped[catName]) {
+            grouped[catName].push(item);
+          }
+        });
+
+        // Find max number of items in any category for row count
+        const maxRows = Math.max(...categories.map(cat => grouped[cat].length));
+        console.log("Max rows:", maxRows);
+
+        // Build table
+        let html = `<table style="width:100%;border-collapse:collapse;table-layout:auto;">
+          <thead>
+            <tr>
+              ${categories.map(cat => `<th>${cat}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        for (let i = 0; i < maxRows; i++) {
+          html += '<tr>';
+          for (const cat of categories) {
+            const item = grouped[cat][i];
+            html += '<td>';
+            if (item) {
+              html += `<a href="${item.arg}" target="_blank">${item.title}</a>`;
+            } else {
+              html += '';
+            }
+            html += '</td>';
+          }
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        document.getElementById('bookmarksTable').innerHTML = html;
+      }
+
+      // Folding logic for uploads section
+      const toggleBtn = document.getElementById('toggleUploads');
+      const uploadsSection = document.getElementById('uploadsSection');
+      let uploadsVisible = false;
+
+      toggleBtn.addEventListener('click', function() {
+        uploadsVisible = !uploadsVisible;
+        uploadsSection.style.display = uploadsVisible ? '' : 'none';
+        toggleBtn.textContent = uploadsVisible ? '▼' : '►';
+      });
+
+      // Folding logic for file list section
+      const toggleFileListBtn = document.getElementById('toggleFileList');
+      const fileListSection = document.getElementById('fileListSection');
+      let fileListVisible = false;
+
+      toggleFileListBtn.addEventListener('click', function() {
+        fileListVisible = !fileListVisible;
+        fileListSection.style.display = fileListVisible ? '' : 'none';
+        toggleFileListBtn.textContent = fileListVisible ? '▼' : '►';
+      });
+
+      // Folding logic for statistics section
+      const toggleStatsBtn = document.getElementById('toggleStats');
+      const statsSection = document.getElementById('statsSection');
+      let statsVisible = false;
+
+      toggleStatsBtn.addEventListener('click', function() {
+        statsVisible = !statsVisible;
+        statsSection.style.display = statsVisible ? '' : 'none';
+        toggleStatsBtn.textContent = statsVisible ? '▼' : '►';
+      });
+
       // Initial load
       loadFileList();
       loadStats();
+
+      const addBookmarkForm = document.getElementById('addBookmarkForm');
+      const addBookmarkStatus = document.getElementById('addBookmarkStatus');
+
+      addBookmarkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        addBookmarkStatus.textContent = '';
+        const data = {
+          title: document.getElementById('bmTitle').value,
+          arg: document.getElementById('bmArg').value,
+          category_id: parseInt(document.getElementById('bmCategory').value, 10),
+          autocomplete: document.getElementById('bmAutocomplete').value
+        };
+        console.log("Posting bookmark data:", data);
+        fetch('/api/bookmarks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+        .then(res => {
+          console.log("API response status:", res.status);
+          if (res.status === 200 || res.status === 201) {
+            // Try to parse JSON, but log if it fails
+            return res.json().catch(err => {
+              console.error("Failed to parse JSON response:", err);
+              throw err;
+            });
+          } else {
+            console.error("API responded with error status:", res.status, res.statusText);
+            return Promise.reject(res.statusText);
+          }
+        })
+        .then(responseData => {
+          console.log("API response JSON:", responseData);
+          addBookmarkStatus.textContent = 'Bookmark added!';
+          addBookmarkStatus.style.color = 'green';
+          addBookmarkForm.reset();
+          loadBookmarksTable();
+        })
+        .catch(err => {
+          console.error("Bookmark add failed:", err);
+          addBookmarkStatus.textContent = 'Failed to add bookmark.';
+          addBookmarkStatus.style.color = 'red';
+        });
+      });
+
+      // Populate category dropdown from /api/categories
+      function loadCategoriesDropdown() {
+        fetch('/api/categories')
+          .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+          .then(data => {
+            const select = document.getElementById('bmCategory');
+            select.innerHTML = '';
+            categoryIdToName = {};
+            if (Array.isArray(data) && data.length) {
+              data.forEach(cat => {
+                categoryIdToName[cat.id] = cat.name;
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+              });
+            } else {
+              const opt = document.createElement('option');
+              opt.value = '';
+              opt.textContent = 'No categories found';
+              select.appendChild(opt);
+            }
+            // Load bookmarks only after categories are loaded
+            loadBookmarksTable();
+          })
+          .catch(() => {
+            const select = document.getElementById('bmCategory');
+            select.innerHTML = '';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Failed to load categories';
+            select.appendChild(opt);
+            // Still try to load bookmarks
+            loadBookmarksTable();
+          });
+      }
+
+      // Call this on page load
+      loadCategoriesDropdown();
+
+      let categoryIdToName = {};
     </script>
 
   </main>

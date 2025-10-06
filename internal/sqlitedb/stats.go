@@ -1,43 +1,10 @@
-package stats
+package sqlitedb
 
-import (
-	"database/sql"
-	"log"
-
-	"github.com/rogierlommers/home/internal/config"
-	"github.com/sirupsen/logrus"
-	_ "modernc.org/sqlite"
-)
-
-type DB struct {
-	db *sql.DB
-}
+import "github.com/sirupsen/logrus"
 
 type EntryCount struct {
 	Source string `json:"source"`
 	Count  int    `json:"count"`
-}
-
-func InitStatsDB(cfg config.AppConfig) *DB {
-	db, err := sql.Open("sqlite", cfg.StatsDB)
-	if err != nil {
-		logrus.Fatalf("failed to open db: %v", err)
-	}
-
-	_, err = db.Exec(`
-        CREATE TABLE IF NOT EXISTS entry_stats (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            source TEXT NOT NULL UNIQUE,
-            count INTEGER NOT NULL DEFAULT 0
-        )
-    `)
-	if err != nil {
-		log.Fatalf("failed to create table: %v", err)
-	}
-
-	return &DB{
-		db: db,
-	}
 }
 
 func (s *DB) IncrementEntry(source string) error {
@@ -45,6 +12,7 @@ func (s *DB) IncrementEntry(source string) error {
 	if err != nil {
 		return err
 	}
+
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
 		return err
@@ -88,10 +56,4 @@ func (s *DB) GetAllEntryCounts() ([]EntryCount, error) {
 		return nil, err
 	}
 	return counts, nil
-}
-
-func (s *DB) Close() {
-	if err := s.db.Close(); err != nil {
-		logrus.Errorf("failed to close stats db: %v", err)
-	}
 }

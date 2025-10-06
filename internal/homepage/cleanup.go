@@ -7,11 +7,11 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/rogierlommers/home/internal/config"
-	"github.com/rogierlommers/home/internal/stats"
+	"github.com/rogierlommers/home/internal/sqlitedb"
 	"github.com/sirupsen/logrus"
 )
 
-func scheduleCleanup(cfg config.AppConfig, statsDB *stats.DB) {
+func scheduleCleanup(cfg config.AppConfig, statsDB *sqlitedb.DB) {
 	c := cron.New()
 
 	// schedule to run every day at 15:00
@@ -28,7 +28,7 @@ func scheduleCleanup(cfg config.AppConfig, statsDB *stats.DB) {
 	c.Start()
 }
 
-func cleanupOldFiles(dir string, maxAge time.Duration, statsDB *stats.DB) {
+func cleanupOldFiles(dir string, maxAge time.Duration, statsDB *sqlitedb.DB) {
 	now := time.Now()
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

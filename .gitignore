@@ -4,6 +4,11 @@ greedy.bolt
 greedy.db
 bin
 .idea/
+upload-target/
+
+# db files
+home-service-stats.db
+home-service.bolt
 
 # Binaries for programs and plugins
 *.exe

@@ -11,15 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/mailer"
-	"github.com/rogierlommers/home/internal/stats"
+	"github.com/rogierlommers/home/internal/sqlitedb"
 	"github.com/sirupsen/logrus"
 )
 
-func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, stats *stats.DB) {
+func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, stats *sqlitedb.DB) {
 	router.POST("/api/notes/send", sendMailHandler(m, cfg, stats))
 }
 
-func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *stats.DB) gin.HandlerFunc {
+func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// request only contains bytes as attachment

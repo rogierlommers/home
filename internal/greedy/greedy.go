@@ -7,13 +7,13 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
-	"github.com/rogierlommers/home/internal/stats"
+	"github.com/rogierlommers/home/internal/sqlitedb"
 	"github.com/sirupsen/logrus"
 )
 
 type Greedy struct {
 	db    *bolt.DB
-	stats *stats.DB
+	stats *sqlitedb.DB
 	open  bool
 }
 
@@ -32,7 +32,7 @@ type Article struct {
 	Added time.Time
 }
 
-func NewGreedy(cfg config.AppConfig, stats *stats.DB) (Greedy, error) {
+func NewGreedy(cfg config.AppConfig, stats *sqlitedb.DB) (Greedy, error) {
 	boltConfig := &bolt.Options{Timeout: 1 * time.Second}
 
 	db, err := bolt.Open(cfg.GreedyFile, 0600, boltConfig)
