@@ -450,7 +450,8 @@
           document.getElementById('bookmarksTable').textContent = 'No bookmarks found.';
           return;
         }
-        const items = data.items;
+        // Filter out bookmarks where hide_in_gui is true
+        const items = data.items.filter(item => !item.hide_in_gui);
         console.log("Rendering bookmarks for items:", items);
         console.log("Current categoryIdToName mapping:", categoryIdToName);
 
