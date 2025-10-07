@@ -80,6 +80,10 @@
       <h1 class="title">home service</h1>
 
       <h4>Bookmarks</h4>
+      <!-- Add search box above bookmarks table -->
+      <div style="margin-bottom: 1em;">
+        <input type="text" id="bookmarkSearch" placeholder="Search..." style="width: 120px; font-size: 0.95em; padding: 4px 8px;" />
+      </div>
       <div id="bookmarksTable" style="overflow-x:auto; margin-bottom:2em;">
         Loading bookmarks...
       </div>
@@ -444,6 +448,27 @@
           });
       }
 
+      // Add this near your other global variables
+      let bookmarkSearchTerm = "";
+
+      // Add event listener for the search box
+      document.getElementById('bookmarkSearch').addEventListener('input', function(e) {
+        bookmarkSearchTerm = e.target.value;
+        // Re-render the table with the current data and search term
+        fetch('/api/bookmarks')
+          .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+          .then(data => renderBookmarksTable(data));
+      });
+
+      // Cmd+F shortcut to focus the search box
+      document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+          e.preventDefault();
+          document.getElementById('bookmarkSearch').focus();
+          document.getElementById('bookmarkSearch').select();
+        }
+      });
+
       function renderBookmarksTable(data) {
         if (!data || !data.items) {
           console.warn("No bookmarks data or items:", data);
@@ -451,9 +476,17 @@
           return;
         }
         // Filter out bookmarks where hide_in_gui is true
-        const items = data.items.filter(item => !item.hide_in_gui);
-        console.log("Rendering bookmarks for items:", items);
-        console.log("Current categoryIdToName mapping:", categoryIdToName);
+        let items = data.items.filter(item => !item.hide_in_gui);
+
+        // Filter items by search term (case-insensitive, matches title, URL, or autocomplete)
+        if (bookmarkSearchTerm && bookmarkSearchTerm.trim() !== "") {
+          const term = bookmarkSearchTerm.trim().toLowerCase();
+          items = items.filter(item =>
+            (item.title && item.title.toLowerCase().includes(term)) ||
+            (item.arg && item.arg.toLowerCase().includes(term)) ||
+            (item.autocomplete && item.autocomplete.toLowerCase().includes(term))
+          );
+        }
 
         // Generate unique category names from items using the mapping
         const categories = [
@@ -463,7 +496,6 @@
               .filter(Boolean)
           )
         ];
-        console.log("Categories for table:", categories);
 
         // Group items by category name
         const grouped = {};
@@ -477,7 +509,6 @@
 
         // Find max number of items in any category for row count
         const maxRows = Math.max(...categories.map(cat => grouped[cat].length));
-        console.log("Max rows:", maxRows);
 
         // Build table
         let html = `<table style="width:100%;border-collapse:collapse;table-layout:auto;">
