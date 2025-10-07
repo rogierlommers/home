@@ -50,6 +50,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
+		i.Autocomplete = i.Title // for now, set autocomplete to title
 		i.UID = convertSHA256(i.Arg)
 		Bookmarks.Items = append(Bookmarks.Items, i)
 	}
