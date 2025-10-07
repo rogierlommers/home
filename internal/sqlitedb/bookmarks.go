@@ -1,13 +1,19 @@
 package sqlitedb
 
-import "github.com/sirupsen/logrus"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+
+	"github.com/sirupsen/logrus"
+)
 
 type Bookmarks struct {
 	Items []Item `json:"items"`
 }
 
 type Item struct {
-	ID           int    `json:"id"`
+	UID          string `json:"uid"` // Alfred specific, used for sorting
+	ID           int    `json:"id"`  // id in the database
 	Type         string `json:"type"`
 	Title        string `json:"title"`
 	Arg          string `json:"arg"`
@@ -40,6 +46,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
+		i.UID = convertSHA256(i.Arg)
 		Bookmarks.Items = append(Bookmarks.Items, i)
 	}
 
@@ -81,4 +88,11 @@ func (s *DB) AddBookmark(item Item) error {
 	VALUES (?, ?, ?, ?, ?)
 `, item.Type, item.Title, item.Arg, item.Autocomplete, item.CategoryID)
 	return err
+}
+
+func convertSHA256(input string) string {
+	// Generate SHA256 hash
+	hash := sha256.Sum256([]byte(input))
+	// Convert to hexadecimal string
+	return hex.EncodeToString(hash[:])
 }
