@@ -21,6 +21,7 @@ type Item struct {
 	Title      string `json:"title"`
 	Arg        string `json:"arg"`
 	CategoryID int    `json:"category_id"`
+	HideInGUI  bool   `json:"hide_in_gui,omitempty"`
 }
 
 type Categories struct {
@@ -33,7 +34,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
 	rows, err := s.db.Query(`
-    SELECT b.id, b.type, b.title, b.arg, b.category_id
+    SELECT b.id, b.type, b.title, b.arg, b.category_id, b.hide_in_gui
     FROM bookmark_items b
     ORDER BY b.id ASC
 `)
@@ -45,7 +46,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	for rows.Next() {
 		var i Item
 
-		if err := rows.Scan(&i.ID, &i.Type, &i.Title, &i.Arg, &i.CategoryID); err != nil {
+		if err := rows.Scan(&i.ID, &i.Type, &i.Title, &i.Arg, &i.CategoryID, &i.HideInGUI); err != nil {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
@@ -88,9 +89,8 @@ func (s *DB) GetCategories() ([]Categories, error) {
 
 func (s *DB) AddBookmark(item Item) error {
 	_, err := s.db.Exec(`
-	INSERT INTO bookmark_items (type, title, arg, category_id)
-	VALUES (?, ?, ?, ?, ?)
-`, item.Type, item.Title, item.Arg, item.CategoryID)
+		INSERT INTO bookmark_items (type, title, arg, category_id, hide_in_gui)
+		VALUES (?, ?, ?, ?, ?)`, item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI)
 	return err
 }
 

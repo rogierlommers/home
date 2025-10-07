@@ -19,7 +19,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
 		logrus.Fatalf("failed to open db: %v", err)
 	}
 
-	_, err = db.Exec(`
+	result, err := db.Exec(`
         CREATE TABLE IF NOT EXISTS entry_stats (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT NOT NULL UNIQUE,
@@ -32,6 +32,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
             title TEXT,
             arg TEXT UNIQUE,
             category_id INTEGER not null,
+            hide_in_gui BOOLEAN DEFAULT 0,
             FOREIGN KEY (category_id) REFERENCES bookmark_categories(id)
         );
 
@@ -43,6 +44,8 @@ func InitDatabase(cfg config.AppConfig) *DB {
 	if err != nil {
 		log.Fatalf("failed to create table: %v", err)
 	}
+
+	logrus.Debugf("Database initialized, result: %v", result)
 
 	insertTemplateData(db)
 
@@ -64,22 +67,21 @@ func insertTemplateData(db *sql.DB) {
 
 	// then add items
 	items := []Item{
-		// {Type: "default", Title: "Google", Arg: "https://google.com", CategoryID: 1},
-		// {Type: "default", Title: "GitHub", Arg: "https://github.com", CategoryID: 2},
-		// {Type: "default", Title: "Personal Blog", Arg: "https://myblog.com", CategoryID: 3},
-		// {Type: "default", Title: "poep", Arg: "https://myblosg.comd", CategoryID: 4},
-		// {Type: "default", Title: "poep2", Arg: "https://mybdfsfsg.comd", CategoryID: 4},
+		// {Type: "default", Title: "Google", Arg: "https://google.com", CategoryID: 1, HideInGUI: false},
+		// {Type: "default", Title: "GitHub", Arg: "https://github.com", CategoryID: 2, HideInGUI: false},
+		// {Type: "default", Title: "Personal Blog", Arg: "https://myblog.com", CategoryID: 3, HideInGUI: false},
+		// {Type: "default", Title: "poep", Arg: "https://myblosg.comd", CategoryID: 4, HideInGUI: true},
+		// {Type: "default", Title: "poep2", Arg: "https://mybdfsfsg.comd", CategoryID: 4, HideInGUI: true},
 	}
 
 	for _, item := range items {
-		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_items (type, title, arg, autocomplete, category_id) VALUES (?, ?, ?, ?, ?)`,
-			item.Type, item.Title, item.Arg, item.CategoryID)
+		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_items (type, title, arg, autocomplete, category_id, hide_in_gui) VALUES (?, ?, ?, ?, ?, ?)`,
+			item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI)
 		if err != nil {
 			logrus.Errorf("failed to insert bookmark item %s: %v", item.Title, err)
 		}
 		logrus.Debugf("Inserted bookmark item: %+v", item)
 	}
-
 }
 
 func (s *DB) Close() {
