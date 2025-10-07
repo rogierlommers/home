@@ -101,10 +101,6 @@
               <option value="">Loading...</option>
             </select>
           </div>
-          <div style="flex:1; min-width:180px;">
-            <label for="bmAutocomplete">Autocomplete</label>
-            <input type="text" id="bmAutocomplete" name="autocomplete" />
-          </div>
         </div>
         <button type="submit" class="button" style="margin-top:12px;">Add Bookmark</button>
         <span id="addBookmarkStatus" style="margin-left:1em;"></span>
@@ -555,8 +551,7 @@
         const data = {
           title: document.getElementById('bmTitle').value,
           arg: document.getElementById('bmArg').value,
-          category_id: parseInt(document.getElementById('bmCategory').value, 10),
-          autocomplete: document.getElementById('bmAutocomplete').value
+          category_id: parseInt(document.getElementById('bmCategory').value, 10)
         };
         console.log("Posting bookmark data:", data);
         fetch('/api/bookmarks', {
