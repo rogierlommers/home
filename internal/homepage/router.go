@@ -26,7 +26,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/api/stats", statsHandler(db))
 	router.GET("/api/bookmarks", displayBookmarks(db, cfg.XHomeAPIKey))
 	router.GET("/api/categories", displayCategories(db))
-	router.POST("/api/bookmarks", addBookmark(db))
+	router.POST("/api/bookmarks", addBookmark(db, cfg.XHomeAPIKey))
 
 	scheduleCleanup(cfg, db)
 }

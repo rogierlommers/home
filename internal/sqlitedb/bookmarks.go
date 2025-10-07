@@ -15,13 +15,12 @@ type Bookmarks struct {
 }
 
 type Item struct {
-	UID          string `json:"uid"` // Alfred specific, used for sorting
-	ID           int    `json:"id"`  // id in the database
-	Type         string `json:"type"`
-	Title        string `json:"title"`
-	Arg          string `json:"arg"`
-	Autocomplete string `json:"autocomplete"`
-	CategoryID   int    `json:"category_id"`
+	UID        string `json:"uid"` // Alfred specific, used for sorting
+	ID         int    `json:"id"`  // id in the database
+	Type       string `json:"type"`
+	Title      string `json:"title"`
+	Arg        string `json:"arg"`
+	CategoryID int    `json:"category_id"`
 }
 
 type Categories struct {
@@ -34,7 +33,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
 	rows, err := s.db.Query(`
-    SELECT b.id, b.type, b.title, b.arg, b.autocomplete, b.category_id
+    SELECT b.id, b.type, b.title, b.arg, b.category_id
     FROM bookmark_items b
     ORDER BY b.id ASC
 `)
@@ -46,11 +45,11 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	for rows.Next() {
 		var i Item
 
-		if err := rows.Scan(&i.ID, &i.Type, &i.Title, &i.Arg, &i.Autocomplete, &i.CategoryID); err != nil {
+		if err := rows.Scan(&i.ID, &i.Type, &i.Title, &i.Arg, &i.CategoryID); err != nil {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
-		i.Autocomplete = i.Title // for now, set autocomplete to title
+
 		i.UID = convertSHA256(i.Arg)
 		Bookmarks.Items = append(Bookmarks.Items, i)
 	}
@@ -89,15 +88,16 @@ func (s *DB) GetCategories() ([]Categories, error) {
 
 func (s *DB) AddBookmark(item Item) error {
 	_, err := s.db.Exec(`
-	INSERT INTO bookmark_items (type, title, arg, autocomplete, category_id)
+	INSERT INTO bookmark_items (type, title, arg, category_id)
 	VALUES (?, ?, ?, ?, ?)
-`, item.Type, item.Title, item.Arg, item.Autocomplete, item.CategoryID)
+`, item.Type, item.Title, item.Arg, item.CategoryID)
 	return err
 }
 
 func convertSHA256(input string) string {
 	// Generate SHA256 hash
 	hash := sha256.Sum256([]byte(input))
+
 	// Convert to hexadecimal string
 	return hex.EncodeToString(hash[:])
 }

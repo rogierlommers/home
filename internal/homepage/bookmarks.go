@@ -44,12 +44,14 @@ func displayCategories(db *sqlitedb.DB) gin.HandlerFunc {
 	}
 }
 
-func addBookmark(db *sqlitedb.DB) gin.HandlerFunc {
+func addBookmark(db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !isAuthenticated(c) {
+		apiKey := c.GetHeader("X-HOME-API-KEY")
+		if !isAuthenticated(c) && apiKey != XAPIkey {
 			c.String(401, "Unauthorized")
 			return
 		}
+
 		var i sqlitedb.Item
 		if err := c.BindJSON(&i); err != nil {
 			logrus.Errorf("Failed to bind JSON: %v", err)

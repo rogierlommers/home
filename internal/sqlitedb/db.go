@@ -31,7 +31,6 @@ func InitDatabase(cfg config.AppConfig) *DB {
             type TEXT,
             title TEXT,
             arg TEXT UNIQUE,
-            autocomplete TEXT,
             category_id INTEGER not null,
             FOREIGN KEY (category_id) REFERENCES bookmark_categories(id)
         );
@@ -65,16 +64,16 @@ func insertTemplateData(db *sql.DB) {
 
 	// then add items
 	items := []Item{
-		// {Type: "default", Title: "Google", Arg: "https://google.com", Autocomplete: "google", CategoryID: 1},
-		// {Type: "default", Title: "GitHub", Arg: "https://github.com", Autocomplete: "github", CategoryID: 2},
-		// {Type: "default", Title: "Personal Blog", Arg: "https://myblog.com", Autocomplete: "blog", CategoryID: 3},
-		// {Type: "default", Title: "poep", Arg: "https://myblosg.comd", Autocomplete: "blog", CategoryID: 4},
-		// {Type: "default", Title: "poep2", Arg: "https://mybdfsfsg.comd", Autocomplete: "bloghaha", CategoryID: 4},
+		// {Type: "default", Title: "Google", Arg: "https://google.com", CategoryID: 1},
+		// {Type: "default", Title: "GitHub", Arg: "https://github.com", CategoryID: 2},
+		// {Type: "default", Title: "Personal Blog", Arg: "https://myblog.com", CategoryID: 3},
+		// {Type: "default", Title: "poep", Arg: "https://myblosg.comd", CategoryID: 4},
+		// {Type: "default", Title: "poep2", Arg: "https://mybdfsfsg.comd", CategoryID: 4},
 	}
 
 	for _, item := range items {
 		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_items (type, title, arg, autocomplete, category_id) VALUES (?, ?, ?, ?, ?)`,
-			item.Type, item.Title, item.Arg, item.Autocomplete, item.CategoryID)
+			item.Type, item.Title, item.Arg, item.CategoryID)
 		if err != nil {
 			logrus.Errorf("failed to insert bookmark item %s: %v", item.Title, err)
 		}
