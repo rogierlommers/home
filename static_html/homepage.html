@@ -460,14 +460,26 @@
           .then(data => renderBookmarksTable(data));
       });
 
-      // Cmd+F shortcut to focus the search box
+      // Add ESC key handler to clear search
+      document.getElementById('bookmarkSearch').addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          this.value = '';
+          bookmarkSearchTerm = '';
+          fetch('/api/bookmarks')
+            .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+            .then(data => renderBookmarksTable(data));
+        }
+      });
+
       document.addEventListener('keydown', function(e) {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
           e.preventDefault();
-          document.getElementById('bookmarkSearch').focus();
-          document.getElementById('bookmarkSearch').select();
+          e.stopPropagation();
+          const searchBox = document.getElementById('bookmarkSearch');
+          searchBox.focus();
+          searchBox.select();
         }
-      });
+      }, { capture: true });
 
       function renderBookmarksTable(data) {
         if (!data || !data.items) {
