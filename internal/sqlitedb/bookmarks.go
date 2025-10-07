@@ -8,6 +8,9 @@ import (
 )
 
 type Bookmarks struct {
+	Cache struct {
+		Seconds int `json:"seconds"`
+	} `json:"cache"`
 	Items []Item `json:"items"`
 }
 
@@ -28,6 +31,7 @@ type Categories struct {
 
 func (s *DB) GetBookmarks() (Bookmarks, error) {
 	var Bookmarks Bookmarks
+	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
 	rows, err := s.db.Query(`
     SELECT b.id, b.type, b.title, b.arg, b.autocomplete, b.category_id
