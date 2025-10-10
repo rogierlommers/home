@@ -1,6 +1,8 @@
 package homepage
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/sqlitedb"
 
@@ -33,7 +35,10 @@ func displayCategories(db *sqlitedb.DB) gin.HandlerFunc {
 			return
 		}
 
-		categories, err := db.GetCategories()
+		excludeHiddenStr := c.Query("exclude_hidden")
+		excludeHidden, _ := strconv.ParseBool(excludeHiddenStr)
+
+		categories, err := db.GetCategories(excludeHidden)
 		if err != nil {
 			logrus.Errorf("Failed to get categories: %v", err)
 			c.String(500, "Failed to retrieve categories")

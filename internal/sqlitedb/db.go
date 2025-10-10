@@ -38,7 +38,8 @@ func InitDatabase(cfg config.AppConfig) *DB {
 
         CREATE TABLE IF NOT EXISTS bookmark_categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+			hide_in_gui BOOLEAN DEFAULT 0
         );
     `)
 	if err != nil {
@@ -56,12 +57,18 @@ func InitDatabase(cfg config.AppConfig) *DB {
 
 func insertTemplateData(db *sql.DB) {
 
-	// first add categories
-	categories := []string{"Personal", "Home network", "Fun", "Work"}
-	for _, cat := range categories {
-		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_categories (name) VALUES (?)`, cat)
+	categories := map[string]bool{
+		"Personal":     false,
+		"Home network": false,
+		"Fun":          false,
+		"Work":         false,
+		"Temporary":    true,
+	}
+
+	for name, hide := range categories {
+		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_categories (name, hide_in_gui) VALUES (?, ?)`, name, hide)
 		if err != nil {
-			logrus.Errorf("failed to insert category %s: %v", cat, err)
+			logrus.Errorf("failed to insert category with name %s: %v", name, err)
 		}
 	}
 

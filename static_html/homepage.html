@@ -487,6 +487,7 @@
           document.getElementById('bookmarksTable').textContent = 'No bookmarks found.';
           return;
         }
+
         // Filter out bookmarks where hide_in_gui is true
         let items = data.items.filter(item => !item.hide_in_gui);
 
@@ -632,9 +633,10 @@
 
       // Populate category dropdown from /api/categories
       function loadCategoriesDropdown() {
-        fetch('/api/categories')
+        fetch('/api/categories?exclude_hidden=true')
           .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
           .then(data => {
+            console.log("Posting categories data:", data);
             const select = document.getElementById('bmCategory');
             select.innerHTML = '';
             categoryIdToName = {};

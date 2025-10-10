@@ -24,9 +24,10 @@ type Item struct {
 	HideInGUI  bool   `json:"hide_in_gui,omitempty"`
 }
 
-type Categories struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+type Category struct {
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+	HideInGUI bool   `json:"hide_in_gui,omitempty"`
 }
 
 func (s *DB) GetBookmarks() (Bookmarks, error) {
@@ -62,18 +63,29 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	return Bookmarks, nil
 }
 
-func (s *DB) GetCategories() ([]Categories, error) {
-	var categories []Categories
+func (s *DB) GetCategories(excludeHidden bool) ([]Category, error) {
+	var (
+		categories []Category
+		query      string
+	)
 
-	rows, err := s.db.Query(`SELECT id, name FROM bookmark_categories ORDER BY name ASC`)
+	if excludeHidden {
+		logrus.Debugf("Excluding hidden categories from results")
+		query = "SELECT id, name, hide_in_gui FROM bookmark_categories WHERE hide_in_gui != true ORDER BY id ASC"
+	} else {
+		logrus.Debugf("Including all categories in results")
+		query = "SELECT id, name, hide_in_gui FROM bookmark_categories ORDER BY id ASC"
+	}
+
+	rows, err := s.db.Query(query)
 	if err != nil {
 		return categories, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var c Categories
-		if err := rows.Scan(&c.ID, &c.Name); err != nil {
+		var c Category
+		if err := rows.Scan(&c.ID, &c.Name, &c.HideInGUI); err != nil {
 			logrus.Errorf("Failed to scan category row: %v", err)
 			return categories, err
 		}
