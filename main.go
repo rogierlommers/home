@@ -45,17 +45,7 @@ func main() {
 	mailer := mailer.NewMailer(cfg)
 	homepage.Add(router, cfg, mailer, staticHtmlFS, db)
 	quicknote.NewQuicknote(router, cfg, mailer, db)
-
-	greedyInstance, err := greedy.NewGreedy(cfg, db)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	defer greedyInstance.CloseArticleDB()
-
-	// schedule cleanup and routes
-	greedyInstance.AddRoutes(router)
-	greedyInstance.ScheduleCleanup()
-	logrus.Infof("bucket initialized with %d records", greedyInstance.Count())
+	greedy.NewGreedy(router, cfg, db)
 
 	// start serving
 	logrus.Infof("listening on http://%s", cfg.HostPort)

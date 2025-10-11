@@ -8,7 +8,7 @@ type EntryCount struct {
 }
 
 func (s *DB) IncrementEntry(source string) error {
-	res, err := s.db.Exec(`UPDATE entry_stats SET count = count + 1 WHERE source = ?`, source)
+	res, err := s.Conn.Exec(`UPDATE entry_stats SET count = count + 1 WHERE source = ?`, source)
 	if err != nil {
 		return err
 	}
@@ -19,7 +19,7 @@ func (s *DB) IncrementEntry(source string) error {
 	}
 
 	if rowsAffected == 0 {
-		_, err = s.db.Exec(`INSERT INTO entry_stats (source, count) VALUES (?, 1)`, source)
+		_, err = s.Conn.Exec(`INSERT INTO entry_stats (source, count) VALUES (?, 1)`, source)
 		if err != nil {
 			return err
 		}
@@ -33,12 +33,12 @@ func (s *DB) IncrementEntry(source string) error {
 
 func (s *DB) GetEntryCount(source string) (int, error) {
 	var count int
-	err := s.db.QueryRow(`SELECT count FROM entry_stats WHERE source = ?`, source).Scan(&count)
+	err := s.Conn.QueryRow(`SELECT count FROM entry_stats WHERE source = ?`, source).Scan(&count)
 	return count, err
 }
 
 func (s *DB) GetAllEntryCounts() ([]EntryCount, error) {
-	rows, err := s.db.Query(`SELECT source, count FROM entry_stats ORDER BY source ASC`)
+	rows, err := s.Conn.Query(`SELECT source, count FROM entry_stats ORDER BY source ASC`)
 	if err != nil {
 		return nil, err
 	}

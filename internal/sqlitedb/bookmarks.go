@@ -34,7 +34,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	var Bookmarks Bookmarks
 	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
-	rows, err := s.db.Query(`
+	rows, err := s.Conn.Query(`
     SELECT b.id, b.type, b.title, b.arg, b.category_id, b.hide_in_gui
     FROM bookmark_items b
     ORDER BY b.id ASC
@@ -77,7 +77,7 @@ func (s *DB) GetCategories(excludeHidden bool) ([]Category, error) {
 		query = "SELECT id, name, hide_in_gui FROM bookmark_categories ORDER BY id ASC"
 	}
 
-	rows, err := s.db.Query(query)
+	rows, err := s.Conn.Query(query)
 	if err != nil {
 		return categories, err
 	}
@@ -100,7 +100,7 @@ func (s *DB) GetCategories(excludeHidden bool) ([]Category, error) {
 }
 
 func (s *DB) AddBookmark(item Item) error {
-	_, err := s.db.Exec(`
+	_, err := s.Conn.Exec(`
 		INSERT INTO bookmark_items (type, title, arg, category_id, hide_in_gui)
 		VALUES (?, ?, ?, ?, ?)`, item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI)
 	return err

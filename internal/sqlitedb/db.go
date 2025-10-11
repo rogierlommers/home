@@ -10,7 +10,7 @@ import (
 )
 
 type DB struct {
-	db *sql.DB
+	Conn *sql.DB
 }
 
 func InitDatabase(cfg config.AppConfig) *DB {
@@ -51,7 +51,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
 	insertTemplateData(db)
 
 	return &DB{
-		db: db,
+		Conn: db,
 	}
 }
 
@@ -92,7 +92,7 @@ func insertTemplateData(db *sql.DB) {
 }
 
 func (s *DB) Close() {
-	if err := s.db.Close(); err != nil {
+	if err := s.Conn.Close(); err != nil {
 		logrus.Errorf("failed to close stats db: %v", err)
 	}
 }
