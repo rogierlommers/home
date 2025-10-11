@@ -14,5 +14,5 @@ UPLOAD_TARGET=/Users/rlommers/projects/home/upload-target
 X_HOME_API_KEY=supersecretkey
 USERNAME=
 PASSWORD=
-CLEANUP_DAYS=1
+FILE_CLEANUP_DAYS=1
 DEV=true

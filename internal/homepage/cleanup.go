@@ -17,14 +17,14 @@ func scheduleCleanup(cfg config.AppConfig, statsDB *sqlitedb.DB) {
 	// schedule to run every day at 15:00
 	_, err := c.AddFunc("0 15 * * *", func() {
 		// cleanup files older than cfg.CleanUpInDys days
-		cleanupOldFiles(cfg.UploadTarget, time.Duration(cfg.CleanUpInDys)*24*time.Hour, statsDB)
+		cleanupOldFiles(cfg.UploadTarget, time.Duration(cfg.FileCleanUpInDys)*24*time.Hour, statsDB)
 	})
 	if err != nil {
 		logrus.Errorf("failed to schedule cleanup: %v", err)
 		return
 	}
 
-	logrus.Infof("scheduled %d-daily cleanup of old files in %s", cfg.CleanUpInDys, cfg.UploadTarget)
+	logrus.Infof("scheduled %d-daily cleanup of old files in %s", cfg.FileCleanUpInDys, cfg.UploadTarget)
 	c.Start()
 }
 

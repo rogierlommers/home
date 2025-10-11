@@ -18,7 +18,7 @@ type AppConfig struct {
 	Username                string
 	Password                string
 	XHomeAPIKey             string
-	CleanUpInDys            int
+	FileCleanUpInDys        int
 }
 
 func ReadConfig() AppConfig {
@@ -48,14 +48,14 @@ func ReadConfig() AppConfig {
 	// cleanup days
 	if days := os.Getenv("CLEANUP_DAYS"); days != "" {
 		var err error
-		_, err = fmt.Sscanf(days, "%d", &c.CleanUpInDys)
+		_, err = fmt.Sscanf(days, "%d", &c.FileCleanUpInDys)
 		if err != nil {
 			logrus.Errorf("invalid CLEANUP_DAYS value, defaulting to 30 days: %v", err)
-			c.CleanUpInDys = 30
+			c.FileCleanUpInDys = 30
 		}
 	} else {
 		logrus.Error("invalid CLEANUP_DAYS value, defaulting to 30 days")
-		c.CleanUpInDys = 30
+		c.FileCleanUpInDys = 30
 	}
 
 	return c
