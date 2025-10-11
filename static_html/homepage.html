@@ -88,7 +88,6 @@
         Loading bookmarks...
       </div>
 
-      <h4>Add Bookmark</h4>
       <form id="addBookmarkForm" style="margin-bottom:2em;">
         <div style="display: flex; flex-wrap: wrap; gap: 16px;">
           <div style="flex:1; min-width:180px;">
@@ -110,10 +109,9 @@
         <span id="addBookmarkStatus" style="margin-left:1em;"></span>
       </form>
 
-
       <h4>
         <button id="toggleUploads" style="font-size:1em;">►</button>
-        File uploads
+        Notify / Upload files
       </h4>
       <div id="uploadsSection" style="display:none;">
         <form id="uploadForm" action="/api/upload" method="post" enctype="multipart/form-data">

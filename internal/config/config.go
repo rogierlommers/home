@@ -46,15 +46,15 @@ func ReadConfig() AppConfig {
 	}
 
 	// cleanup days
-	if days := os.Getenv("CLEANUP_DAYS"); days != "" {
+	if days := os.Getenv("FILE_CLEANUP_DAYS"); days != "" {
 		var err error
 		_, err = fmt.Sscanf(days, "%d", &c.FileCleanUpInDys)
 		if err != nil {
-			logrus.Errorf("invalid CLEANUP_DAYS value, defaulting to 30 days: %v", err)
+			logrus.Errorf("invalid FILE_CLEANUP_DAYS value, defaulting to 30 days: %v", err)
 			c.FileCleanUpInDys = 30
 		}
 	} else {
-		logrus.Error("invalid CLEANUP_DAYS value, defaulting to 30 days")
+		logrus.Error("invalid FILE_CLEANUP_DAYS value, defaulting to 30 days")
 		c.FileCleanUpInDys = 30
 	}
 
