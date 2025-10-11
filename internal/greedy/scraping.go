@@ -10,33 +10,35 @@ func (g *Greedy) scheduleScraping() {
 
 	// Schedule scraping every scrapingFrequncy seconds
 	go func() {
+		logrus.Infof("starting scraping every %d seconds", g.cfg.GreedyScrapingFrequency)
+
 		for {
-			logrus.Debugf("Starting scheduled scraping of articles")
-			time.Sleep(time.Duration(scrapingFrequncy) * time.Second)
+			logrus.Debugf("starting scheduled scraping of articles")
+			time.Sleep(time.Duration(g.cfg.GreedyScrapingFrequency) * time.Second)
 
 			onlyScrapedURLs := false
 			urls, err := g.getURLs(onlyScrapedURLs)
 			if err != nil {
-				logrus.Errorf("Error fetching articles for scraping: %v", err)
+				logrus.Errorf("error fetching articles for scraping: %v", err)
 				continue
 			}
 
 			for _, url := range urls {
 				logrus.Infof("Scraping URL: %s", url.URL)
 				if err := url.scrape(); err != nil {
-					logrus.Errorf("Error scraping URL %s: %v", url.URL, err)
+					logrus.Errorf("error scraping URL %s: %v", url.URL, err)
 					continue
 				}
 
 				if err := g.updateURL(url); err != nil {
-					logrus.Errorf("Error updating URL %s in database: %v", url.URL, err)
+					logrus.Errorf("error updating URL %s in database: %v", url.URL, err)
 					continue
 				}
 
-				logrus.Debugf("Successfully scraped and updated URL: %s with title: %s", url.URL, url.Title)
+				logrus.Debugf("successfully scraped and updated URL: %s with title: %s", url.URL, url.Title)
 			}
 
-			logrus.Debugf("Completed scheduled scraping of articles")
+			logrus.Debugf("completed scheduled scraping of articles")
 		}
 	}()
 

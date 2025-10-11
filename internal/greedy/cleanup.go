@@ -10,15 +10,16 @@ func (g *Greedy) scheduleCleanup() {
 
 	// Schedule cleanup every cleanupFrequency seconds
 	go func() {
-		for {
+		logrus.Infof("starting scheduled cleanup every %d seconds", g.cfg.GreedyCleanupFrequency)
 
-			time.Sleep(time.Duration(cleanupFrequency) * time.Second)
+		for {
+			time.Sleep(time.Duration(g.cfg.GreedyCleanupFrequency) * time.Second)
 
 			if err := g.deleteOldRecords(keep); err != nil {
-				logrus.Errorf("Error during cleanup of old records: %v", err)
+				logrus.Errorf("error during cleanup of old records: %v", err)
 			}
 
-			logrus.Debugf("Completed scheduled scraping of articles")
+			logrus.Debugf("completed scheduled scraping of articles")
 		}
 	}()
 

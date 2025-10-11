@@ -9,25 +9,29 @@ import (
 )
 
 type AppConfig struct {
-	HostPort     string
-	GreedyFile   string
-	Database     string
-	UploadTarget string
-	Username     string
-	Password     string
-	XHomeAPIKey  string
-	CleanUpInDys int
+	HostPort                string
+	GreedyFile              string
+	GreedyCleanupFrequency  int
+	GreedyScrapingFrequency int
+	Database                string
+	UploadTarget            string
+	Username                string
+	Password                string
+	XHomeAPIKey             string
+	CleanUpInDys            int
 }
 
 func ReadConfig() AppConfig {
 
 	c := AppConfig{
-		GreedyFile:   os.Getenv("GREEDY_FILE"),
-		Database:     os.Getenv("DATABASE"),
-		UploadTarget: os.Getenv("UPLOAD_TARGET"),
-		Username:     os.Getenv("USERNAME"),
-		Password:     os.Getenv("PASSWORD"),
-		XHomeAPIKey:  os.Getenv("X_HOME_API_KEY"),
+		GreedyFile:              os.Getenv("GREEDY_FILE"),
+		GreedyCleanupFrequency:  convertToInt(os.Getenv("GREEDY_CLEANUP_FREQUENCY"), 86400), // default 1 day
+		GreedyScrapingFrequency: convertToInt(os.Getenv("GREEDY_SCRAPING_FREQUENCY"), 3600), // default 1 hour
+		Database:                os.Getenv("DATABASE"),
+		UploadTarget:            os.Getenv("UPLOAD_TARGET"),
+		Username:                os.Getenv("USERNAME"),
+		Password:                os.Getenv("PASSWORD"),
+		XHomeAPIKey:             os.Getenv("X_HOME_API_KEY"),
 	}
 
 	// host and port
@@ -55,4 +59,16 @@ func ReadConfig() AppConfig {
 	}
 
 	return c
+}
+
+func convertToInt(i string, defaultValue int) int {
+
+	var value int
+	_, err := fmt.Sscanf(i, "%d", &value)
+	if err != nil {
+		logrus.Errorf("invalid integer value, defaulting to %d: %v", defaultValue, err)
+		return defaultValue
+	}
+
+	return value
 }

@@ -17,10 +17,8 @@ import (
 )
 
 const (
-	keep                 = 250   // amount of records to keep
-	numberInRSS          = 100   // amount of records to display in feed
-	cleanupFrequency     = 86400 // 1 day
-	scrapingFrequncy     = 3600  // 1 hour
+	keep                 = 250 // amount of records to keep
+	numberInRSS          = 100 // amount of records to display in feed
 	userAgentForScraping = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36"
 )
 
@@ -32,13 +30,17 @@ type GreedyURL struct {
 }
 
 type Greedy struct {
-	db *sqlitedb.DB
+	db  *sqlitedb.DB
+	cfg config.AppConfig
 }
 
 func NewGreedy(router *gin.Engine, cfg config.AppConfig, db *sqlitedb.DB) (Greedy, error) {
 
 	// create instance
-	g := Greedy{db: db}
+	g := Greedy{
+		db:  db,
+		cfg: cfg,
+	}
 
 	// add routes
 	router.GET("/api/greedy/add", g.addURL)
