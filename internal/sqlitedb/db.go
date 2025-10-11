@@ -19,7 +19,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
 		logrus.Fatalf("failed to open db: %v", err)
 	}
 
-	result, err := db.Exec(`
+	_, err = db.Exec(`
         CREATE TABLE IF NOT EXISTS entry_stats (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT NOT NULL UNIQUE,
@@ -46,7 +46,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
 		log.Fatalf("failed to create table: %v", err)
 	}
 
-	logrus.Debugf("Database initialized, result: %v", result)
+	logrus.Debugf("Database initialized, file: %s", cfg.Database)
 
 	insertTemplateData(db)
 
