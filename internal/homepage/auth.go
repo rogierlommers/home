@@ -6,6 +6,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func displayLoginPage(c *gin.Context) {
+	if isAuthenticated(c) {
+		c.Redirect(302, "/bookmarks")
+		return
+	}
+
+	htmlBytes, err := staticFS.ReadFile("static_html/login.html")
+	if err != nil {
+		logrus.Errorf("Error reading static html: %v", err)
+		c.String(500, "Failed to load login page")
+		return
+	}
+
+	c.Header("Content-Type", "text/html")
+	c.String(200, string(htmlBytes))
+}
+
 func isAuthenticated(c *gin.Context) bool {
 	auth, err := c.Cookie("auth")
 	return err == nil && auth == "true"

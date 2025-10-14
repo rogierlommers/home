@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>home service</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+    <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #888;
+            margin-top: 2em;
+            transition: border-color 0.2s;
+        }
+
+        .drop-zone.dragover {
+            border-color: #333;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        .drop-zone input {
+            display: none;
+        }
+
+        #progressContainer {
+            width: 100%;
+            background: #eee;
+            border-radius: 4px;
+            margin: 1em 0;
+            height: 18px;
+            display: none;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: #9b4dca;
+            border-radius: 4px;
+            transition: width 0.2s;
+        }
+
+        .logout-btn {
+            margin-bottom: 2em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrapper">
+
+        <section class="container" id="examples">
+            <h1 class="title">home service</h1>
+
+            <h4>
+                <a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) /
+                <a href="/statistics">statistics</a> /
+                <a href="notify">notify</a> /
+                <a href="storage">storage</a>
+            </h4>
+
+            <div class="drop-zone" id="dropZone">
+                <p>Drag &amp; drop files here to upload<br>or <label style="color:#9b4dca;cursor:pointer;"><input type="file" id="fileInput" multiple />browse</label></p>
+                <div id="progressContainer">
+                    <div id="progressBar"></div>
+                </div>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <div id="fileTableContainer" style="margin-top:2em;">
+                <div id="fileTable">Loading files...</div>
+            </div>
+        </section>
+
+        <script>
+            function formatBytes(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function renderFileTable(files) {
+                if (!files || !files.length) {
+                    document.getElementById('fileTable').textContent = 'No files found.';
+                    return;
+                }
+                let html = `<table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Modified</th>
+                <th>Download</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+                files.forEach(file => {
+                    html += `<tr>
+            <td>${file.name}</td>
+            <td>${formatBytes(file.size)}</td>
+            <td>${new Date(file.modTime).toLocaleString()}</td>
+            <td><a href="/api/download/${encodeURIComponent(file.name)}" download>Download</a></td>
+        </tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('fileTable').innerHTML = html;
+            }
+
+            function loadFileTable() {
+                fetch('/api/filelist')
+                    .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                    .then(data => renderFileTable(data.files))
+                    .catch(() => {
+                        document.getElementById('fileTable').textContent = 'Failed to load files.';
+                    });
+            }
+
+            // Drag & Drop Upload Logic
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            function uploadFiles(files) {
+                if (!files.length) return;
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                uploadStatus.textContent = '';
+                const formData = new FormData();
+                for (const file of files) {
+                    formData.append('files', file);
+                }
+
+                // enforce only uploading files
+                formData.set('onlyUpload', 'true');
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/upload', true);
+
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percent + '%';
+                    }
+                };
+                xhr.onload = function () {
+                    progressContainer.style.display = 'none';
+                    if (xhr.status === 200 || xhr.status === 201) {
+                        uploadStatus.textContent = 'Upload successful!';
+                        uploadStatus.style.color = 'green';
+                        loadFileTable();
+                    } else {
+                        uploadStatus.textContent = 'Upload failed.';
+                        uploadStatus.style.color = 'red';
+                    }
+                };
+                xhr.onerror = function () {
+                    progressContainer.style.display = 'none';
+                    uploadStatus.textContent = 'Upload failed.';
+                    uploadStatus.style.color = 'red';
+                };
+                xhr.send(formData);
+            }
+
+            dropZone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files.length) {
+                    uploadFiles(e.dataTransfer.files);
+                }
+            });
+            fileInput.addEventListener('change', function (e) {
+                if (fileInput.files && fileInput.files.length) {
+                    uploadFiles(fileInput.files);
+                }
+            });
+
+            loadFileTable();
+        </script>
+    </main>
+
+</body>
+
+</html>

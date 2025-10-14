@@ -17,11 +17,9 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	staticFS = staticHtmlFS
 
 	// landing page and authorization
+	router.GET("/", displayLoginPage)
 	router.POST("/api/login", login(cfg))
 	router.GET("/api/logout", logout())
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/bookmarks")
-	})
 
 	// statistics
 	router.GET("/api/stats", statsHandler(db))
@@ -37,9 +35,10 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.DELETE("/api/bookmarks/:id", deleteBookmark(db))
 
 	// file storage
+	router.GET("/storage", displayStorage)
 	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
 	router.GET("/api/filelist", fileList(cfg))
-	router.GET("/api/download", downloadFile(cfg))
+	router.GET("/api/download/:filename", downloadFile(cfg))
 
 	// cleanup
 	scheduleCleanup(cfg, db)

@@ -16,8 +16,26 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func displayStorage(c *gin.Context) {
+	if !isAuthenticated(c) {
+		c.Redirect(302, "/login")
+		return
+	}
+
+	htmlBytes, err := staticFS.ReadFile("static_html/storage.html")
+	if err != nil {
+		logrus.Errorf("Error reading static html: %v", err)
+		c.String(500, "Failed to load file storage page")
+		return
+	}
+
+	c.Header("Content-Type", "text/html")
+	c.String(200, string(htmlBytes))
+}
+
 func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer, stats *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		// Parse the multipart form, with a max memory of 32 MB
 		if err := c.Request.ParseMultipartForm(32 << 20); err != nil {
 			c.String(400, "Failed to parse multipart form: %v", err)
@@ -33,7 +51,7 @@ func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer, stats *sqlitedb.DB
 		var err error
 
 		form := c.Request.MultipartForm
-		files := form.File["file"]
+		files := form.File["files"]
 
 		if len(files) == 0 {
 			logrus.Debugf("No files uploaded")
@@ -148,8 +166,9 @@ func fileList(cfg config.AppConfig) gin.HandlerFunc {
 
 func downloadFile(cfg config.AppConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logrus.Debugf("Download request from %s", c.ClientIP())
-		filename := c.Query("filename")
+
+		filename := filepath.Base(c.Param("filename")) // sanitize input
+		logrus.Debugf("requested download of file: %s", filename)
 		if filename == "" {
 			c.String(400, "Filename query parameter is required")
 			return
