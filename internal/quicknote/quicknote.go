@@ -83,8 +83,10 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
+
 			statsSource = "quicknotes_with_attachment"
-			responseMessage = fmt.Sprintf("(%d bytes) note with attachment %s sent", len(memoryBuffer.Bytes()), header.Filename)
+			responseMessage = fmt.Sprintf("(%s) note with attachment %s sent", humanize.Bytes(uint64(len(memoryBuffer.Bytes()))), header.Filename)
+
 		} else {
 			if err := m.SendMail(subject, targetEmail, body, nil); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
@@ -94,6 +96,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 
 			statsSource = "quicknotes_no_attachment"
 			responseMessage = fmt.Sprintf("(%s) note without attachment sent", humanize.Bytes(uint64(len(body))))
+
 		}
 
 		// increment stats
