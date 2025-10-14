@@ -11,35 +11,31 @@
     <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
     <style>
         .edit-table {
-            width: 100%;
-            max-width: 1300px;
-            min-width: 1300px;
+            width: auto;
             margin: 0 auto;
             table-layout: auto;
             border-collapse: collapse;
+            max-width: none;
+            min-width: 0;
         }
 
         .edit-table input[type="text"],
         .edit-table input[type="url"] {
-            width: 260px;
-            min-width: 180px;
+            width: 140px;
+            min-width: 60px;
         }
 
         .edit-table input[type="number"].edit-category {
-            width: 70px;
-            min-width: 40px;
-            max-width: 90px;
+            width: 50px;
+            min-width: 30px;
+            max-width: 70px;
         }
 
         .edit-table th,
         .edit-table td {
             vertical-align: middle;
-            padding: 0.1em 0.1em;
+            padding: 0.1em 0.3em;
             border: none !important;
-        }
-
-        .edit-table td {
-            padding: 0.1em 0.1em;
         }
 
         .edit-table input[type="checkbox"] {
@@ -48,19 +44,17 @@
 
         .edit-table button {
             margin: 0 2px;
+            padding: 2px 10px;
+            min-width: unset;
+            width: auto;
+            font-size: 0.6em;
+            line-height: 1.2;
         }
 
         #editBookmarksTable {
-            width: 100%;
-            max-width: 1300px;
+            width: auto;
+            max-width: none;
             margin: 0 auto;
-        }
-
-        .edit-table,
-        .edit-table th,
-        .edit-table td {
-            border: none !important;
-            border-collapse: collapse;
         }
     </style>
 </head>
@@ -94,7 +88,7 @@
                 document.getElementById('editBookmarksTable').textContent = 'No bookmarks found.';
                 return;
             }
-            let html = `<table class="edit-table" style="width:100%;table-layout:auto;">
+            let html = `<table class="edit-table">
                 <thead>
                     <tr>
                         <th>Title</th>
@@ -117,8 +111,8 @@
                         </td>
                         <td>
                             <button class="button button-outline save-btn" type="button">Save</button>
-                            <button class="button button-clear cancel-btn" type="button">Cancel</button>
-                            <button class="button button-clear delete-btn" type="button" style="color:#d9534f;">Delete</button>
+                            <button class="button button-outline cancel-btn" type="button">Cancel</button>
+                            <button class="button button-outline delete-btn" type="button" style="color:#d9534f;">Delete</button>
                         </td>
                     </tr>
                 `;
