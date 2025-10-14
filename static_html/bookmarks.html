@@ -79,10 +79,12 @@
     <section class="container" id="examples">
       <h1 class="title">home service</h1>
 
-      <h4>Bookmarks | <a href="/bookmarks/edit">edit</a></h4>
+      <h4><a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) / <a href="/statistics">statistics</a> /
+        <a href="#">notify</a></h4>
       <!-- Add search box above bookmarks table -->
       <div style="margin-bottom: 1em;">
-        <input type="text" id="bookmarkSearch" placeholder="Search..." style="width: 120px; font-size: 0.95em; padding: 4px 8px;" />
+        <input type="text" id="bookmarkSearch" placeholder="Search..."
+          style="width: 120px; font-size: 0.95em; padding: 4px 8px;" />
       </div>
       <div id="bookmarksTable" style="overflow-x:auto; margin-bottom:2em;">
         Loading bookmarks...
@@ -125,7 +127,8 @@
               <label for="subject">Subject</label>
               <input type="text" id="subject" name="subject" placeholder="Enter subject..." />
               <label for="message">Description</label>
-              <textarea id="message" name="message" placeholder="Enter message..." rows="4" style="resize:vertical;"></textarea>
+              <textarea id="message" name="message" placeholder="Enter message..." rows="4"
+                style="resize:vertical;"></textarea>
             </div>
             <div style="flex: 0 0 220px; display: flex; flex-direction: column; align-items: stretch; gap: 8px;">
               <div class="drop-zone" id="dropZone" style="padding: 18px; min-height: 60px;">
@@ -157,15 +160,6 @@
       <div id="fileListSection" style="display:none;">
         <div id="fileList">
           Loading...
-        </div>
-      </div>
-      <h4>
-        <button id="toggleStats" style="font-size:1em;">►</button>
-        Statistics
-      </h4>
-      <div id="statsSection" style="width:100%; max-width:100%; margin-bottom:2em; display:none;">
-        <div id="statsChart">
-          Loading statistics...
         </div>
       </div>
 
@@ -368,7 +362,7 @@
       }
 
       // Sorting handler
-      window.sortFileTable = function(col) {
+      window.sortFileTable = function (col) {
         if (sortColumn === col) {
           sortAsc = !sortAsc;
         } else {
@@ -394,46 +388,6 @@
         return diffSec + ' sec ago';
       }
 
-      function renderStatsChart(stats) {
-        if (!stats || !stats.length) {
-          document.getElementById('statsChart').textContent = 'No statistics found.';
-          return;
-        }
-        // Match file list width
-        let table = `<table style="width:100%;table-layout:fixed;border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th style="width:40%;text-align:left;">Source</th>
-              <th style="width:40%;text-align:left;">Bar</th>
-              <th style="width:20%;text-align:right;">Count</th>
-            </tr>
-          </thead>
-          <tbody>
-        `;
-        const max = Math.max(...stats.map(s => s.count));
-        stats.forEach(s => {
-          const width = max ? (s.count / max * 100) : 0;
-          table += `<tr>
-            <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.source}</td>
-            <td>
-              <div style="background:#9b4dca;height:18px;width:${width}%;min-width:2px;display:inline-block;"></div>
-            </td>
-            <td style="text-align:right;">${s.count}</td>
-          </tr>`;
-        });
-        table += '</tbody></table>';
-        document.getElementById('statsChart').innerHTML = table;
-      }
-
-      function loadStats() {
-        fetch('/api/stats')
-          .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
-          .then(data => renderStatsChart(data.stats))
-          .catch(() => {
-            document.getElementById('statsChart').textContent = 'Failed to load statistics.';
-          });
-      }
-
       function loadBookmarksTable() {
         fetch('/api/bookmarks')
           .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
@@ -450,7 +404,7 @@
       let bookmarkSearchTerm = "";
 
       // Add event listener for the search box
-      document.getElementById('bookmarkSearch').addEventListener('input', function(e) {
+      document.getElementById('bookmarkSearch').addEventListener('input', function (e) {
         bookmarkSearchTerm = e.target.value;
         // Re-render the table with the current data and search term
         fetch('/api/bookmarks')
@@ -459,7 +413,7 @@
       });
 
       // Add ESC key handler to clear search
-      document.getElementById('bookmarkSearch').addEventListener('keydown', function(e) {
+      document.getElementById('bookmarkSearch').addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
           this.value = '';
           bookmarkSearchTerm = '';
@@ -469,7 +423,7 @@
         }
       });
 
-      document.addEventListener('keydown', function(e) {
+      document.addEventListener('keydown', function (e) {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
           e.preventDefault();
           e.stopPropagation();
@@ -553,7 +507,7 @@
       const uploadsSection = document.getElementById('uploadsSection');
       let uploadsVisible = false;
 
-      toggleBtn.addEventListener('click', function() {
+      toggleBtn.addEventListener('click', function () {
         uploadsVisible = !uploadsVisible;
         uploadsSection.style.display = uploadsVisible ? '' : 'none';
         toggleBtn.textContent = uploadsVisible ? '▼' : '►';
@@ -564,31 +518,19 @@
       const fileListSection = document.getElementById('fileListSection');
       let fileListVisible = false;
 
-      toggleFileListBtn.addEventListener('click', function() {
+      toggleFileListBtn.addEventListener('click', function () {
         fileListVisible = !fileListVisible;
         fileListSection.style.display = fileListVisible ? '' : 'none';
         toggleFileListBtn.textContent = fileListVisible ? '▼' : '►';
       });
 
-      // Folding logic for statistics section
-      const toggleStatsBtn = document.getElementById('toggleStats');
-      const statsSection = document.getElementById('statsSection');
-      let statsVisible = false;
-
-      toggleStatsBtn.addEventListener('click', function() {
-        statsVisible = !statsVisible;
-        statsSection.style.display = statsVisible ? '' : 'none';
-        toggleStatsBtn.textContent = statsVisible ? '▼' : '►';
-      });
-
       // Initial load
       loadFileList();
-      loadStats();
 
       const addBookmarkForm = document.getElementById('addBookmarkForm');
       const addBookmarkStatus = document.getElementById('addBookmarkStatus');
 
-      addBookmarkForm.addEventListener('submit', function(e) {
+      addBookmarkForm.addEventListener('submit', function (e) {
         e.preventDefault();
         addBookmarkStatus.textContent = '';
         const data = {
@@ -602,31 +544,31 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         })
-        .then(res => {
-          console.log("API response status:", res.status);
-          if (res.status === 200 || res.status === 201) {
-            // Try to parse JSON, but log if it fails
-            return res.json().catch(err => {
-              console.error("Failed to parse JSON response:", err);
-              throw err;
-            });
-          } else {
-            console.error("API responded with error status:", res.status, res.statusText);
-            return Promise.reject(res.statusText);
-          }
-        })
-        .then(responseData => {
-          console.log("API response JSON:", responseData);
-          addBookmarkStatus.textContent = 'Bookmark added!';
-          addBookmarkStatus.style.color = 'green';
-          addBookmarkForm.reset();
-          loadBookmarksTable();
-        })
-        .catch(err => {
-          console.error("Bookmark add failed:", err);
-          addBookmarkStatus.textContent = 'Failed to add bookmark.';
-          addBookmarkStatus.style.color = 'red';
-        });
+          .then(res => {
+            console.log("API response status:", res.status);
+            if (res.status === 200 || res.status === 201) {
+              // Try to parse JSON, but log if it fails
+              return res.json().catch(err => {
+                console.error("Failed to parse JSON response:", err);
+                throw err;
+              });
+            } else {
+              console.error("API responded with error status:", res.status, res.statusText);
+              return Promise.reject(res.statusText);
+            }
+          })
+          .then(responseData => {
+            console.log("API response JSON:", responseData);
+            addBookmarkStatus.textContent = 'Bookmark added!';
+            addBookmarkStatus.style.color = 'green';
+            addBookmarkForm.reset();
+            loadBookmarksTable();
+          })
+          .catch(err => {
+            console.error("Bookmark add failed:", err);
+            addBookmarkStatus.textContent = 'Failed to add bookmark.';
+            addBookmarkStatus.style.color = 'red';
+          });
       });
 
       // Populate category dropdown from /api/categories

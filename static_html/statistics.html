@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>home service</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+    <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #888;
+            margin-top: 2em;
+            transition: border-color 0.2s;
+        }
+
+        .drop-zone.dragover {
+            border-color: #333;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        .drop-zone input {
+            display: none;
+        }
+
+        #progressContainer {
+            width: 100%;
+            background: #eee;
+            border-radius: 4px;
+            margin: 1em 0;
+            height: 18px;
+            display: none;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: #9b4dca;
+            border-radius: 4px;
+            transition: width 0.2s;
+        }
+
+        .logout-btn {
+            margin-bottom: 2em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrapper">
+
+        <section class="container" id="examples">
+            <h1 class="title">home service</h1>
+
+            <h4><a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) / <a
+                    href="/statistics">statistics</a> / <a href="#">notify</a></h4>
+
+            <!-- Add this where you want the graph to appear -->
+            <div id="statsChart" style="margin:2em 0;">Loading statistics...</div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                function renderStatsGraph(stats) {
+                    if (!stats || !stats.length) {
+                        document.getElementById('statsChart').textContent = 'No statistics found.';
+                        return;
+                    }
+                    // Prepare data for Chart.js
+                    const labels = stats.map(s => s.source);
+                    const dataCounts = stats.map(s => s.count);
+
+                    // Remove any previous canvas
+                    document.getElementById('statsChart').innerHTML = '<canvas id="statsBarChart" height="120"></canvas>';
+
+                    const ctx = document.getElementById('statsBarChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Count',
+                                data: dataCounts,
+                                backgroundColor: '#9b4dca'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                title: { display: false }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, precision: 0 }
+                            }
+                        }
+                    });
+                }
+
+                function loadStats() {
+                    fetch('/api/stats')
+                        .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                        .then(data => renderStatsGraph(data.stats))
+                        .catch(() => {
+                            document.getElementById('statsChart').textContent = 'Failed to load statistics.';
+                        });
+                }
+
+                loadStats();
+            </script>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

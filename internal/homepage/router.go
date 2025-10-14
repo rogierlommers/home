@@ -23,9 +23,9 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 		c.Redirect(302, "/bookmarks")
 	})
 
-	// statistics page
+	// statistics
 	router.GET("/api/stats", statsHandler(db))
-	// router.GET("/statistics", displayStatistics)
+	router.GET("/statistics", displayStatistics)
 
 	// bookmarks
 	router.GET("/bookmarks", displayBookmarks)
