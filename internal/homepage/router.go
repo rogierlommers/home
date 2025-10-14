@@ -34,11 +34,14 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.PUT("/api/bookmarks/:id", editBookmark(db))
 	router.DELETE("/api/bookmarks/:id", deleteBookmark(db))
 
+	// notify
+	router.GET("/notify", displayNotify)
+
 	// file storage
 	router.GET("/storage", displayStorage)
-	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
 	router.GET("/api/filelist", fileList(cfg))
 	router.GET("/api/download/:filename", downloadFile(cfg))
+	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
 
 	// cleanup
 	scheduleCleanup(cfg, db)

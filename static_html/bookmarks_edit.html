@@ -16,23 +16,30 @@
             min-width: 1300px;
             margin: 0 auto;
             table-layout: auto;
+            border-collapse: collapse;
         }
 
         .edit-table input[type="text"],
-        .edit-table input[type="url"],
-        .edit-table input[type="number"] {
+        .edit-table input[type="url"] {
             width: 260px;
             min-width: 180px;
+        }
+
+        .edit-table input[type="number"].edit-category {
+            width: 70px;
+            min-width: 40px;
+            max-width: 90px;
         }
 
         .edit-table th,
         .edit-table td {
             vertical-align: middle;
-            border: 0px solid #ddd;
+            padding: 0.1em 0.1em;
+            border: none !important;
         }
 
         .edit-table td {
-            padding: 0.3em 0.6em;
+            padding: 0.1em 0.1em;
         }
 
         .edit-table input[type="checkbox"] {
@@ -47,6 +54,13 @@
             width: 100%;
             max-width: 1300px;
             margin: 0 auto;
+        }
+
+        .edit-table,
+        .edit-table th,
+        .edit-table td {
+            border: none !important;
+            border-collapse: collapse;
         }
     </style>
 </head>
@@ -97,7 +111,7 @@
                     <tr data-id="${item.id}">
                         <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
                         <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
-                        <td><input type="number" value="${item.category_id || ''}" class="edit-category" min="1" style="width:70px;" /></td>
+                        <td><input type="number" value="${item.category_id || ''}" class="edit-category" min="1" /></td>
                         <td style="text-align:center;">
                             <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
                         </td>
