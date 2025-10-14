@@ -16,40 +16,31 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	// make the embedded filesystem available
 	staticFS = staticHtmlFS
 
-	// add routes
-	router.GET("/", displayHome)
-	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
+	// landing page and authorization
 	router.POST("/api/login", login(cfg))
 	router.GET("/api/logout", logout())
-	router.GET("/api/filelist", fileList(cfg))
-	router.GET("/api/download", downloadFile(cfg))
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(302, "/bookmarks")
+	})
+
+	// statistics page
 	router.GET("/api/stats", statsHandler(db))
-	router.GET("/api/bookmarks", displayBookmarks(db, cfg.XHomeAPIKey))
+	// router.GET("/statistics", displayStatistics)
+
+	// bookmarks
+	router.GET("/bookmarks", displayBookmarks)
+	router.GET("/bookmarks/edit", displayEditBookmarks)
+	router.GET("/api/bookmarks", getBookmarks(db, cfg.XHomeAPIKey))
 	router.GET("/api/categories", displayCategories(db))
 	router.POST("/api/bookmarks", addBookmark(db, cfg.XHomeAPIKey))
+	router.PUT("/api/bookmarks/:id", editBookmark(db))
+	router.DELETE("/api/bookmarks/:id", editBookmark(db))
 
+	// file storage
+	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
+	router.GET("/api/filelist", fileList(cfg))
+	router.GET("/api/download", downloadFile(cfg))
+
+	// cleanup
 	scheduleCleanup(cfg, db)
-}
-
-func displayHome(c *gin.Context) {
-	if !isAuthenticated(c) {
-		htmlBytes, err := staticFS.ReadFile("static_html/login.html")
-		if err != nil {
-			c.String(500, "Failed to load login page")
-			return
-		}
-
-		c.Header("Content-Type", "text/html")
-		c.String(200, string(htmlBytes))
-		return
-	}
-
-	htmlBytes, err := staticFS.ReadFile("static_html/homepage.html")
-	if err != nil {
-		c.String(500, "Failed to load homepage")
-		return
-	}
-
-	c.Header("Content-Type", "text/html")
-	c.String(200, string(htmlBytes))
 }

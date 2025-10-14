@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Bookmarks</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+    <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
+    <style>
+        .edit-table {
+            width: 100%;
+            max-width: 1300px;
+            min-width: 1300px;
+            margin: 0 auto;
+            table-layout: auto;
+        }
+
+        .edit-table input[type="text"],
+        .edit-table input[type="url"],
+        .edit-table input[type="number"] {
+            width: 260px;
+            min-width: 180px;
+        }
+
+        .edit-table th,
+        .edit-table td {
+            vertical-align: middle;
+            border: 0px solid #ddd;
+        }
+
+        .edit-table td {
+            padding: 0.3em 0.6em;
+        }
+
+        .edit-table input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .edit-table button {
+            margin: 0 2px;
+        }
+
+        #editBookmarksTable {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrapper">
+        <section class="container" id="examples">
+            <h1 class="title">home service</h1>
+            <h4>Bookmarks | <a href="/bookmarks">home</a></h4>
+            <div id="editBookmarksStatus" style="margin-bottom:1em;"></div>
+            <div id="editBookmarksTable">Loading bookmarks...</div>
+        </section>
+    </main>
+    <script>
+        // Fetch and render all bookmarks in an editable table
+        function loadEditBookmarks() {
+            fetch('/api/bookmarks')
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(data => renderEditBookmarksTable(data.items))
+                .catch(() => {
+                    document.getElementById('editBookmarksTable').textContent = 'Failed to load bookmarks.';
+                });
+        }
+
+        function renderEditBookmarksTable(items) {
+            if (!items || !items.length) {
+                document.getElementById('editBookmarksTable').textContent = 'No bookmarks found.';
+                return;
+            }
+            let html = `<table class="edit-table" style="width:100%;table-layout:auto;">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>URL</th>
+                        <th>Category ID</th>
+                        <th>Hide in GUI</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            items.forEach(item => {
+                html += `
+                    <tr data-id="${item.id}">
+                        <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
+                        <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
+                        <td><input type="number" value="${item.category_id || ''}" class="edit-category" min="1" style="width:70px;" /></td>
+                        <td style="text-align:center;">
+                            <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
+                        </td>
+                        <td>
+                            <button class="button button-outline save-btn" type="button">Save</button>
+                            <button class="button button-clear cancel-btn" type="button">Cancel</button>
+                            <button class="button button-clear delete-btn" type="button" style="color:#d9534f;">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table>';
+            document.getElementById('editBookmarksTable').innerHTML = html;
+
+            // Add event listeners for Save, Cancel, and Delete
+            document.querySelectorAll('.save-btn').forEach(btn => {
+                btn.onclick = function () {
+                    const row = btn.closest('tr');
+                    saveBookmarkRow(row);
+                };
+            });
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.onclick = function () {
+                    loadEditBookmarks();
+                };
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = function () {
+                    const row = btn.closest('tr');
+                    const id = row.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this bookmark?')) {
+                        fetch(`/api/bookmarks/${id}`, {
+                            method: 'DELETE'
+                        })
+                        .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                        .then(() => {
+                            document.getElementById('editBookmarksStatus').textContent = 'Bookmark deleted!';
+                            document.getElementById('editBookmarksStatus').style.color = 'green';
+                            loadEditBookmarks();
+                        })
+                        .catch(() => {
+                            document.getElementById('editBookmarksStatus').textContent = 'Failed to delete bookmark.';
+                            document.getElementById('editBookmarksStatus').style.color = 'red';
+                        });
+                    }
+                };
+            });
+        }
+
+        function saveBookmarkRow(row) {
+            const id = row.getAttribute('data-id');
+            const title = row.querySelector('.edit-title').value;
+            const arg = row.querySelector('.edit-arg').value;
+            const category_id = parseInt(row.querySelector('.edit-category').value, 10);
+            const hide_in_gui = row.querySelector('.edit-hide').checked;
+
+            console.log("Updating bookmark:", { id, title, arg, category_id, hide_in_gui });
+            fetch(`/api/bookmarks/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    arg,
+                    category_id,
+                    hide_in_gui
+                })
+            })
+            .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+            .then(() => {
+                document.getElementById('editBookmarksStatus').textContent = 'Bookmark updated!';
+                document.getElementById('editBookmarksStatus').style.color = 'green';
+                loadEditBookmarks();
+            })
+            .catch(() => {
+                document.getElementById('editBookmarksStatus').textContent = 'Failed to update bookmark.';
+                document.getElementById('editBookmarksStatus').style.color = 'red';
+            });
+        }
+
+        // Initial load
+        loadEditBookmarks();
+    </script>
+</body>
+</html>

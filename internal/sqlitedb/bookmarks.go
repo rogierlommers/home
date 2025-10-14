@@ -106,6 +106,19 @@ func (s *DB) AddBookmark(item Item) error {
 	return err
 }
 
+func (s *DB) DeleteBookmark(id int) error {
+	_, err := s.Conn.Exec(`DELETE FROM bookmark_items WHERE id = ?`, id)
+	return err
+}
+
+func (s *DB) UpdateBookmark(item Item) error {
+	_, err := s.Conn.Exec(`
+		UPDATE bookmark_items
+		SET type = ?, title = ?, arg = ?, category_id = ?, hide_in_gui = ?
+		WHERE id = ?`, item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI, item.ID)
+	return err
+}
+
 func convertSHA256(input string) string {
 	// Generate SHA256 hash
 	hash := sha256.Sum256([]byte(input))

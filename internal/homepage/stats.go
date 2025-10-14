@@ -5,9 +5,9 @@ import (
 	"github.com/rogierlommers/home/internal/sqlitedb"
 )
 
-func statsHandler(statsDB *sqlitedb.DB) gin.HandlerFunc {
+func statsHandler(db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		counts, err := statsDB.GetAllEntryCounts()
+		counts, err := db.GetAllEntryCounts()
 		if err != nil {
 			c.JSON(500, gin.H{"error": "Failed to get stats"})
 			return
