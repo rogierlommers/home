@@ -34,7 +34,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/api/categories", displayCategories(db))
 	router.POST("/api/bookmarks", addBookmark(db, cfg.XHomeAPIKey))
 	router.PUT("/api/bookmarks/:id", editBookmark(db))
-	router.DELETE("/api/bookmarks/:id", editBookmark(db))
+	router.DELETE("/api/bookmarks/:id", deleteBookmark(db))
 
 	// file storage
 	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
