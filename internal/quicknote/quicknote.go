@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/mailer"
@@ -90,8 +91,9 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
+
 			statsSource = "quicknotes_no_attachment"
-			responseMessage = fmt.Sprintf("(%d bytes) note without attachment sent", len(body))
+			responseMessage = fmt.Sprintf("(%s) note without attachment sent", humanize.Bytes(uint64(len(body))))
 		}
 
 		// increment stats
