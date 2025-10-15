@@ -24,13 +24,17 @@ func (g *Greedy) scheduleScraping() {
 			}
 
 			for _, url := range urls {
-				logrus.Infof("Scraping URL: %s", url.URL)
+				logrus.Debugf("Scraping URL: %s", url.URL)
+
 				if err := url.scrape(); err != nil {
-					logrus.Errorf("error scraping URL %s: %v", url.URL, err)
+					url.ScrapeCount++
+					if err := g.updateURL(url, false); err != nil {
+						logrus.Errorf("error updating URL %s in database: %v", url.URL, err)
+					}
 					continue
 				}
 
-				if err := g.updateURL(url); err != nil {
+				if err := g.updateURL(url, true); err != nil {
 					logrus.Errorf("error updating URL %s in database: %v", url.URL, err)
 					continue
 				}

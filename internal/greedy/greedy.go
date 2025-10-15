@@ -23,10 +23,11 @@ const (
 )
 
 type GreedyURL struct {
-	ID    int
-	URL   string
-	Title string
-	Added time.Time
+	ID          int
+	URL         string
+	Title       string
+	ScrapeCount int
+	Added       time.Time
 }
 
 type Greedy struct {
@@ -135,6 +136,7 @@ func (g *Greedy) createTable() error {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             url TEXT NOT NULL,
             title TEXT NOT NULL,
+            scrape_count INTEGER NOT NULL DEFAULT 0,
             scrape_done BOOLEAN NOT NULL DEFAULT 0,
             date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
@@ -153,14 +155,14 @@ func (g Greedy) saveURL(greedyURL GreedyURL) error {
 	return err
 }
 
-func (g *Greedy) updateURL(greedyURL GreedyURL) error {
+func (g *Greedy) updateURL(greedyURL GreedyURL, isDone bool) error {
 
 	// update article's title and mark as scraped
 	_, err := g.db.Conn.Exec(`
 		UPDATE greedy_urls
-		SET title = ?, scrape_done = true
+		SET title = ?, scrape_count = ?, scrape_done = ?
 		WHERE id = ?
-	`, greedyURL.Title, greedyURL.ID)
+	`, greedyURL.Title, greedyURL.ScrapeCount, isDone, greedyURL.ID)
 	return err
 }
 
@@ -171,9 +173,9 @@ func (g Greedy) getURLs(onlyScrapedURLs bool) ([]GreedyURL, error) {
 	)
 
 	if onlyScrapedURLs {
-		query = `SELECT id, url, title, date_added FROM greedy_urls WHERE scrape_done = true ORDER BY date_added DESC LIMIT ?`
+		query = `SELECT id, url, title, scrape_count, date_added FROM greedy_urls WHERE scrape_done = true ORDER BY date_added DESC LIMIT ?`
 	} else {
-		query = `SELECT id, url, title, date_added FROM greedy_urls WHERE scrape_done = false ORDER BY date_added DESC LIMIT ?`
+		query = `SELECT id, url, title, scrape_count, date_added FROM greedy_urls WHERE scrape_done = false ORDER BY date_added DESC LIMIT ?`
 	}
 
 	rows, err := g.db.Conn.Query(query, numberInRSS)
@@ -184,7 +186,7 @@ func (g Greedy) getURLs(onlyScrapedURLs bool) ([]GreedyURL, error) {
 
 	for rows.Next() {
 		var url GreedyURL
-		if err := rows.Scan(&url.ID, &url.URL, &url.Title, &url.Added); err != nil {
+		if err := rows.Scan(&url.ID, &url.URL, &url.Title, &url.ScrapeCount, &url.Added); err != nil {
 			return nil, err
 		}
 		urls = append(urls, url)
@@ -198,6 +200,13 @@ func (g Greedy) getURLs(onlyScrapedURLs bool) ([]GreedyURL, error) {
 }
 
 func (u *GreedyURL) scrape() error {
+
+	// if max attempts reached, stop trying
+	if u.ScrapeCount >= 3 {
+		logrus.Warnf("max scrape attempts reached for url: %s", u.URL)
+		u.Title = getBaseURL(u.URL)
+		return nil
+	}
 
 	// init colly scraper
 	c := colly.NewCollector(
