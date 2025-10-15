@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -147,12 +148,14 @@ func fileList(cfg config.AppConfig) gin.HandlerFunc {
 			ModTime time.Time `json:"modTime"`
 		}
 		var files []fileInfo
+
 		for _, entry := range entries {
 			if !entry.IsDir() {
 				info, err := entry.Info()
 				if err != nil {
 					continue
 				}
+
 				files = append(files, fileInfo{
 					Name:    entry.Name(),
 					Size:    info.Size(),
@@ -160,6 +163,12 @@ func fileList(cfg config.AppConfig) gin.HandlerFunc {
 				})
 			}
 		}
+
+		// Sort files by ModTime (descending: newest first)
+		sort.Slice(files, func(i, j int) bool {
+			return files[i].ModTime.After(files[j].ModTime)
+		})
+
 		c.JSON(200, gin.H{"files": files})
 	}
 }
