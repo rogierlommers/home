@@ -38,7 +38,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/notify", displayNotify)
 
 	// file storage
-	router.GET("/storage", displayStorage)
+	router.GET("/storage", displayStorage(cfg))
 	router.GET("/api/filelist", fileList(cfg))
 	router.GET("/api/download/:filename", downloadFile(cfg))
 	router.POST("/api/upload", uploadFiles(cfg, mailer, db))

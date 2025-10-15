@@ -1,12 +1,14 @@
 package homepage
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"sort"
+	"text/template"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,21 +19,44 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func displayStorage(c *gin.Context) {
-	if !isAuthenticated(c) {
-		c.Redirect(302, "/login")
-		return
-	}
+func displayStorage(cfg config.AppConfig) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !isAuthenticated(c) {
+			c.Redirect(302, "/login")
+			return
+		}
 
-	htmlBytes, err := staticFS.ReadFile("static_html/storage.html")
-	if err != nil {
-		logrus.Errorf("Error reading static html: %v", err)
-		c.String(500, "Failed to load file storage page")
-		return
-	}
+		// Read the template file from the embedded FS
+		htmlBytes, err := staticFS.ReadFile("static_html/storage.html")
+		if err != nil {
+			logrus.Errorf("Error reading static html: %v", err)
+			c.String(500, "Failed to load file storage page")
+			return
+		}
 
-	c.Header("Content-Type", "text/html")
-	c.String(200, string(htmlBytes))
+		// Parse the template from bytes
+		tmpl, err := template.New("storage.html").Parse(string(htmlBytes))
+		if err != nil {
+			logrus.Errorf("Error parsing template: %v", err)
+			c.String(500, "Failed to parse file storage template")
+			return
+		}
+
+		// Example data to pass to the template
+		data := struct{ RetentionPeriod int }{
+			RetentionPeriod: cfg.FileCleanUpInDys,
+		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, data); err != nil {
+			logrus.Errorf("Error executing template: %v", err)
+			c.String(500, "Failed to render file storage page")
+			return
+		}
+
+		c.Header("Content-Type", "text/html")
+		c.String(200, buf.String())
+	}
 }
 
 func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer, stats *sqlitedb.DB) gin.HandlerFunc {

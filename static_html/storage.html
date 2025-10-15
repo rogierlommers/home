@@ -87,11 +87,16 @@
             </h4>
 
             <div class="drop-zone" id="dropZone">
-                <p>Drag &amp; drop files here to upload<br>or <label style="color:#9b4dca;cursor:pointer;"><input type="file" id="fileInput" multiple />browse</label></p>
+                <p>Drag &amp; drop files here to upload<br>or <label style="color:#9b4dca;cursor:pointer;"><input
+                            type="file" id="fileInput" multiple />browse</label></p>
                 <div id="progressContainer">
                     <div id="progressBar"></div>
                 </div>
                 <div id="uploadStatus"></div>
+            </div>
+
+            <div>
+                <p><h5>Files will automatically be deleted after {{.RetentionPeriod}} day</h5></p>
             </div>
 
             <div id="fileTableContainer" style="margin-top:2em;">
@@ -106,6 +111,24 @@
                 const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function timeAgo(date) {
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+                if (seconds < 60) return `${seconds} seconds ago`;
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes} minutes ago`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours} hours ago`;
+                const days = Math.floor(hours / 24);
+                if (days < 7) return `${days} days ago`;
+                const weeks = Math.floor(days / 7);
+                if (weeks < 4) return `${weeks} weeks ago`;
+                const months = Math.floor(days / 30);
+                if (months < 12) return `${months} months ago`;
+                const years = Math.floor(days / 365);
+                return `${years} years ago`;
             }
 
             function renderFileTable(files) {
@@ -125,10 +148,11 @@
         <tbody>
     `;
                 files.forEach(file => {
+                    const modDate = new Date(file.modTime);
                     html += `<tr>
             <td>${file.name}</td>
             <td>${formatBytes(file.size)}</td>
-            <td>${new Date(file.modTime).toLocaleString()}</td>
+            <td title="${modDate.toLocaleString()}">${timeAgo(modDate)}</td>
             <td><a href="/api/download/${encodeURIComponent(file.name)}" download>Download</a></td>
         </tr>`;
                 });
