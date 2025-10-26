@@ -35,15 +35,16 @@ func main() {
 	// Custom middleware to set CSP header
 	router.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src-elem 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://milligram.io; font-src https://fonts.gstatic.com;")
+		c.Writer.Header().Set("X-Frame-Options", "DENY")
+		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
 		c.Next()
 	})
 
-	// c.Header("X-Frame-Options", "DENY")
 	// c.Header("Content-Security-Policy", "default-src 'self'; connect-src *; font-src *; script-src-elem * 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline';")
 	// c.Header("X-XSS-Protection", "1; mode=block")
 	// c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	// c.Header("Referrer-Policy", "strict-origin")
-	// c.Header("X-Content-Type-Options", "nosniff")
+
 	// c.Header("Permissions-Policy", "geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=()")
 
 	router.Use(cors.New(cors.Config{
