@@ -34,7 +34,7 @@ func main() {
 
 	// Custom middleware to set CSP header
 	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src-elem 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://milligram.io; font-src https://fonts.gstatic.com;")
+		c.Writer.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src-elem 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://milligram.io; font-src https://fonts.gstatic.com;")
 		c.Writer.Header().Set("X-Frame-Options", "DENY")
 		c.Writer.Header().Set("X-Content-Type-Options", "nosniff")
 		c.Next()
