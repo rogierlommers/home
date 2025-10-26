@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/danielkov/gin-helmet/ginhelmet"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
@@ -33,8 +32,12 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
-	// use default security headers, including CSP
-	router.Use(ginhelmet.Default())
+	// Custom middleware to set CSP header
+	router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self';")
+
+		c.Next()
+	})
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
