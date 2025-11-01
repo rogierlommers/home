@@ -1,0 +1,19 @@
+{
+  "name": "Home service / devcontainer",
+  "dockerComposeFile": "./compose.yml",
+  "workspaceFolder": "/workspace",
+  "service": "home-service",
+  "forwardPorts": [],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "ms-dotnettools.csdevkit"
+      ]
+    }
+  },
+//   "containerUser": "dev",
+//   "remoteUser": "dev",
+  "overrideCommand": false
+}

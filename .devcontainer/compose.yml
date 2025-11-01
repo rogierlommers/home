@@ -1,0 +1,13 @@
+---
+services:
+  home-service:
+    tty: true
+    init: true
+    network_mode: "bridge"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - PORT=5000
