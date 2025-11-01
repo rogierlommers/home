@@ -31,6 +31,11 @@
             max-width: 70px;
         }
 
+        .edit-table select.edit-category {
+            width: 120px;
+            min-width: 100px;
+        }
+
         .edit-table th,
         .edit-table td {
             vertical-align: middle;
@@ -120,7 +125,7 @@
                     <tr>
                         <th>Title</th>
                         <th>URL</th>
-                        <th>Category ID</th>
+                        <th>Category</th>
                         <th>Hide in GUI</th>
                         <th>Actions</th>
                     </tr>
@@ -128,11 +133,22 @@
                 <tbody>
             `;
             items.forEach(item => {
+                // Create category dropdown options
+                let categoryOptions = '';
+                Object.entries(categoryIdToName).forEach(([id, name]) => {
+                    const selected = item.category_id == id ? 'selected' : '';
+                    categoryOptions += `<option value="${id}" ${selected}>${name}</option>`;
+                });
+
                 html += `
                     <tr data-id="${item.id}">
                         <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
                         <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
-                        <td><input type="number" value="${item.category_id || ''}" class="edit-category" min="1" /></td>
+                        <td>
+                            <select class="edit-category" style="width:120px;">
+                                ${categoryOptions}
+                            </select>
+                        </td>
                         <td style="text-align:center;">
                             <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
                         </td>
@@ -186,7 +202,7 @@
             const id = row.getAttribute('data-id');
             const title = row.querySelector('.edit-title').value;
             const arg = row.querySelector('.edit-arg').value;
-            const category_id = parseInt(row.querySelector('.edit-category').value, 10);
+            const category_id = parseInt(row.querySelector('.edit-category').value, 10); // This now gets from select
             const hide_in_gui = row.querySelector('.edit-hide').checked;
 
             console.log("Updating bookmark:", { id, title, arg, category_id, hide_in_gui });
@@ -219,11 +235,16 @@
             fetch('/api/categories')
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(data => {
+                    console.log("Categories API response:", data); // Debug log
                     const select = document.getElementById('bmCategory');
                     select.innerHTML = '';
                     categoryIdToName = {};
-                    if (Array.isArray(data) && data.length) {
-                        data.forEach(cat => {
+                    
+                    // Handle both possible response formats
+                    const categories = Array.isArray(data) ? data : (data.items || data.categories || []);
+                    
+                    if (categories.length > 0) {
+                        categories.forEach(cat => {
                             categoryIdToName[cat.id] = cat.name;
                             const opt = document.createElement('option');
                             opt.value = cat.id;
@@ -237,7 +258,8 @@
                         select.appendChild(opt);
                     }
                 })
-                .catch(() => {
+                .catch(error => {
+                    console.error("Failed to load categories:", error);
                     const select = document.getElementById('bmCategory');
                     select.innerHTML = '';
                     const opt = document.createElement('option');
@@ -247,39 +269,45 @@
                 });
         }
 
-        document.getElementById('addBookmarkForm').addEventListener('submit', function (e) {
+        // Handle add bookmark form submission
+        document.getElementById('addBookmarkForm').onsubmit = function (e) {
             e.preventDefault();
-            const addBookmarkStatus = document.getElementById('addBookmarkStatus');
-            addBookmarkStatus.textContent = '';
-            const data = {
-                title: document.getElementById('bmTitle').value,
-                arg: document.getElementById('bmArg').value,
-                category_id: parseInt(document.getElementById('bmCategory').value, 10)
-            };
-
+            const title = this.title.value.trim();
+            const arg = this.arg.value.trim();
+            const category_id = this.category.value;
+            if (!title || !arg || !category_id) {
+                return;
+            }
             fetch('/api/bookmarks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    title,
+                    arg,
+                    category_id: parseInt(category_id, 10),
+                    hide_in_gui: false
+                })
             })
-                .then(res => (res.status === 200 || res.status === 201) ? res.json() : Promise.reject(res.statusText))
-                .then(() => {
-                    addBookmarkStatus.textContent = 'Bookmark added!';
-                    addBookmarkStatus.style.color = 'green';
-                    document.getElementById('addBookmarkForm').reset();
-                    loadEditBookmarks(); // Refresh the edit table
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(data => {
+                    document.getElementById('addBookmarkStatus').textContent = 'Bookmark added!';
+                    document.getElementById('addBookmarkStatus').style.color = 'green';
+                    this.reset();
+                    loadCategoriesDropdown();
+                    loadEditBookmarks();
                 })
                 .catch(() => {
-                    addBookmarkStatus.textContent = 'Failed to add bookmark.';
-                    addBookmarkStatus.style.color = 'red';
+                    document.getElementById('addBookmarkStatus').textContent = 'Failed to add bookmark.';
+                    document.getElementById('addBookmarkStatus').style.color = 'red';
                 });
-        });
+        };
 
-        // Load categories when page loads
+        // Initial load - load categories first, then bookmarks
         loadCategoriesDropdown();
-
-        // Initial load
-        loadEditBookmarks();
+        // Add a small delay or callback to ensure categories load first
+        setTimeout(() => {
+            loadEditBookmarks();
+        }, 100);
     </script>
 </body>
 
