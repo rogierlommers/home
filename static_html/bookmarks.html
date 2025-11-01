@@ -91,26 +91,6 @@
         Loading bookmarks...
       </div>
 
-      <form id="addBookmarkForm" style="margin-bottom:2em;">
-        <div style="display: flex; flex-wrap: wrap; gap: 16px;">
-          <div style="flex:1; min-width:180px;">
-            <label for="bmTitle">Title</label>
-            <input type="text" id="bmTitle" name="title" required />
-          </div>
-          <div style="flex:1; min-width:180px;">
-            <label for="bmArg">URL</label>
-            <input type="url" id="bmArg" name="arg" required />
-          </div>
-          <div style="flex:1; min-width:180px;">
-            <label for="bmCategory">Category</label>
-            <select id="bmCategory" name="category" required>
-              <option value="">Loading...</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="button" style="margin-top:12px;">Add Bookmark</button>
-        <span id="addBookmarkStatus" style="margin-left:1em;"></span>
-      </form>
 
     </section>
 
@@ -171,13 +151,12 @@
         // Filter out bookmarks where hide_in_gui is true
         let items = data.items.filter(item => !item.hide_in_gui);
 
-        // Filter items by search term (case-insensitive, matches title, URL, or autocomplete)
+        // Filter items by search term (case-insensitive, matches title, URL)
         if (bookmarkSearchTerm && bookmarkSearchTerm.trim() !== "") {
           const term = bookmarkSearchTerm.trim().toLowerCase();
           items = items.filter(item =>
             (item.title && item.title.toLowerCase().includes(term)) ||
-            (item.arg && item.arg.toLowerCase().includes(term)) ||
-            (item.autocomplete && item.autocomplete.toLowerCase().includes(term))
+            (item.arg && item.arg.toLowerCase().includes(term))
           );
         }
 
@@ -230,91 +209,27 @@
         document.getElementById('bookmarksTable').innerHTML = html;
       }
 
-      const addBookmarkForm = document.getElementById('addBookmarkForm');
-      const addBookmarkStatus = document.getElementById('addBookmarkStatus');
-
-      addBookmarkForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        addBookmarkStatus.textContent = '';
-        const data = {
-          title: document.getElementById('bmTitle').value,
-          arg: document.getElementById('bmArg').value,
-          category_id: parseInt(document.getElementById('bmCategory').value, 10)
-        };
-
-        fetch('/api/bookmarks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        })
-          .then(res => {
-            if (res.status === 200 || res.status === 201) {
-              // Try to parse JSON, but log if it fails
-              return res.json().catch(err => {
-                console.error("Failed to parse JSON response:", err);
-                throw err;
-              });
-            } else {
-              console.error("API responded with error status:", res.status, res.statusText);
-              return Promise.reject(res.statusText);
-            }
-          })
-          .then(responseData => {
-            console.log("API response JSON:", responseData);
-            addBookmarkStatus.textContent = 'Bookmark added!';
-            addBookmarkStatus.style.color = 'green';
-            addBookmarkForm.reset();
-            loadBookmarksTable();
-          })
-          .catch(err => {
-            console.error("Bookmark add failed:", err);
-            addBookmarkStatus.textContent = 'Failed to add bookmark.';
-            addBookmarkStatus.style.color = 'red';
-          });
-      });
-
-      // Populate category dropdown from /api/categories
-      function loadCategoriesDropdown() {
-        fetch('/api/categories?exclude_hidden=true')
+      // Load categories for the mapping
+      function loadCategories() {
+        fetch('/api/categories')
           .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
           .then(data => {
-            console.log("Posting categories data:", data);
-            const select = document.getElementById('bmCategory');
-            select.innerHTML = '';
             categoryIdToName = {};
             if (Array.isArray(data) && data.length) {
               data.forEach(cat => {
                 categoryIdToName[cat.id] = cat.name;
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                select.appendChild(opt);
               });
-            } else {
-              const opt = document.createElement('option');
-              opt.value = '';
-              opt.textContent = 'No categories found';
-              select.appendChild(opt);
             }
-            // Load bookmarks only after categories are loaded
-            loadBookmarksTable();
+            loadBookmarksTable(); // Load bookmarks after categories are loaded
           })
           .catch(() => {
-            const select = document.getElementById('bmCategory');
-            select.innerHTML = '';
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'Failed to load categories';
-            select.appendChild(opt);
-            // Still try to load bookmarks
-            loadBookmarksTable();
+            console.error('Failed to load categories');
+            loadBookmarksTable(); // Still try to load bookmarks
           });
       }
 
-      // Call this on page load
-      loadCategoriesDropdown();
-
-      let categoryIdToName = {};
+      // Initialize
+      loadCategories();
     </script>
 
   </main>

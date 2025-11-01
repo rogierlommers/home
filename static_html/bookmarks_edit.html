@@ -63,13 +63,40 @@
     <main class="wrapper">
         <section class="container" id="examples">
             <h1 class="title">home service</h1>
+
+            <!-- Navigation Links -->
             <h4><a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) / <a
                     href="/statistics">statistics</a> /
-                <a href="notify">notify</a> / <a href="storage">storage</a>
+                <a href="/notify">notify</a> / <a href="/storage">storage</a>
             </h4>
 
+            <!-- Add bookmark form-->
+            <h4 style="margin-top: 2em;">Add New Bookmark</h4>
+            <form id="addBookmarkForm" style="margin-bottom:2em;">
+                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                    <div style="flex:1; min-width:180px;">
+                        <label for="bmTitle">Title</label>
+                        <input type="text" id="bmTitle" name="title" required />
+                    </div>
+                    <div style="flex:1; min-width:180px;">
+                        <label for="bmArg">URL</label>
+                        <input type="url" id="bmArg" name="arg" required />
+                    </div>
+                    <div style="flex:1; min-width:180px;">
+                        <label for="bmCategory">Category</label>
+                        <select id="bmCategory" name="category" required>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="button" style="margin-top:12px;">Add Bookmark</button>
+                <span id="addBookmarkStatus" style="margin-left:1em;"></span>
+            </form>
+
+            <h4 style="margin-top: 2em;">Existing bookmarks</h4>
             <div id="editBookmarksStatus" style="margin-bottom:1em;"></div>
             <div id="editBookmarksTable">Loading bookmarks...</div>
+
         </section>
     </main>
     <script>
@@ -184,6 +211,72 @@
                     document.getElementById('editBookmarksStatus').style.color = 'red';
                 });
         }
+
+        // Add bookmark functionality
+        let categoryIdToName = {};
+
+        function loadCategoriesDropdown() {
+            fetch('/api/categories')
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(data => {
+                    const select = document.getElementById('bmCategory');
+                    select.innerHTML = '';
+                    categoryIdToName = {};
+                    if (Array.isArray(data) && data.length) {
+                        data.forEach(cat => {
+                            categoryIdToName[cat.id] = cat.name;
+                            const opt = document.createElement('option');
+                            opt.value = cat.id;
+                            opt.textContent = cat.name;
+                            select.appendChild(opt);
+                        });
+                    } else {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'No categories found';
+                        select.appendChild(opt);
+                    }
+                })
+                .catch(() => {
+                    const select = document.getElementById('bmCategory');
+                    select.innerHTML = '';
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'Failed to load categories';
+                    select.appendChild(opt);
+                });
+        }
+
+        document.getElementById('addBookmarkForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const addBookmarkStatus = document.getElementById('addBookmarkStatus');
+            addBookmarkStatus.textContent = '';
+            const data = {
+                title: document.getElementById('bmTitle').value,
+                arg: document.getElementById('bmArg').value,
+                category_id: parseInt(document.getElementById('bmCategory').value, 10)
+            };
+
+            fetch('/api/bookmarks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => (res.status === 200 || res.status === 201) ? res.json() : Promise.reject(res.statusText))
+                .then(() => {
+                    addBookmarkStatus.textContent = 'Bookmark added!';
+                    addBookmarkStatus.style.color = 'green';
+                    document.getElementById('addBookmarkForm').reset();
+                    loadEditBookmarks(); // Refresh the edit table
+                })
+                .catch(() => {
+                    addBookmarkStatus.textContent = 'Failed to add bookmark.';
+                    addBookmarkStatus.style.color = 'red';
+                });
+        });
+
+        // Load categories when page loads
+        loadCategoriesDropdown();
 
         // Initial load
         loadEditBookmarks();
