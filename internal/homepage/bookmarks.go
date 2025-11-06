@@ -82,7 +82,6 @@ func addBookmark(db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
 			return
 		}
 
-		i.Type = "default" // hardcode for now
 		logrus.Debugf("Received bookmark: %+v", i)
 		if err := db.AddBookmark(i); err != nil {
 			logrus.Errorf("Failed to add bookmark: %v", err)

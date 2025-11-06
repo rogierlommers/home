@@ -17,7 +17,6 @@ type Bookmarks struct {
 type Item struct {
 	UID        string `json:"uid"` // Alfred specific, used for sorting
 	ID         int    `json:"id"`  // id in the database
-	Type       string `json:"type"`
 	Title      string `json:"title"`
 	Arg        string `json:"arg"`
 	CategoryID int    `json:"category_id"`
@@ -35,7 +34,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
 	rows, err := s.Conn.Query(`
-    SELECT b.id, b.type, b.title, b.arg, b.category_id, b.hide_in_gui
+    SELECT b.id, b.title, b.arg, b.category_id, b.hide_in_gui
     FROM bookmark_items b
     ORDER BY b.id ASC
 `)
@@ -47,7 +46,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	for rows.Next() {
 		var i Item
 
-		if err := rows.Scan(&i.ID, &i.Type, &i.Title, &i.Arg, &i.CategoryID, &i.HideInGUI); err != nil {
+		if err := rows.Scan(&i.ID, &i.Title, &i.Arg, &i.CategoryID, &i.HideInGUI); err != nil {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
@@ -101,8 +100,8 @@ func (s *DB) GetCategories(excludeHidden bool) ([]Category, error) {
 
 func (s *DB) AddBookmark(item Item) error {
 	_, err := s.Conn.Exec(`
-		INSERT INTO bookmark_items (type, title, arg, category_id, hide_in_gui)
-		VALUES (?, ?, ?, ?, ?)`, item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI)
+		INSERT INTO bookmark_items (title, arg, category_id, hide_in_gui)
+		VALUES (?, ?, ?, ?)`, item.Title, item.Arg, item.CategoryID, item.HideInGUI)
 	return err
 }
 
@@ -114,8 +113,8 @@ func (s *DB) DeleteBookmark(id int) error {
 func (s *DB) UpdateBookmark(item Item) error {
 	_, err := s.Conn.Exec(`
 		UPDATE bookmark_items
-		SET type = ?, title = ?, arg = ?, category_id = ?, hide_in_gui = ?
-		WHERE id = ?`, item.Type, item.Title, item.Arg, item.CategoryID, item.HideInGUI, item.ID)
+		SET title = ?, arg = ?, category_id = ?, hide_in_gui = ?
+		WHERE id = ?`, item.Title, item.Arg, item.CategoryID, item.HideInGUI, item.ID)
 	return err
 }
 
