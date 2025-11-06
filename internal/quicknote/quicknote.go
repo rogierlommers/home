@@ -1,7 +1,6 @@
 package quicknote
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -23,53 +22,65 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, st
 func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		// request only contains bytes as attachment
-		// pure text will be added as .txt file
-
-		var memoryBuffer = bytes.NewBuffer(nil)
-
-		file, header, err := c.Request.FormFile("file")
-		if err != nil {
-			logrus.Errorf("error parsing formFile: %s", err)
-			c.JSON(400, gin.H{"msg": "error parsing formFile"})
-			return
-		}
-		defer file.Close()
-
-		// read file into buffer
-		memoryBuffer = bytes.NewBuffer(nil)
-		if _, err := io.Copy(memoryBuffer, file); err != nil {
-			logrus.Errorf("error reading file into buffer: %s", err)
-			c.JSON(500, gin.H{"msg": "error reading file into buffer"})
-			return
-		}
-
-		// process text, strip extention in case of .txt file
-		// and only send the plain filename as subject
 		var (
-			subject       string
+			title         string
+			fileOnDisk    string
+			targetEmail   string
 			hasAttachment bool
-			tmpFilename   string
 		)
 
-		if header.Filename[len(header.Filename)-4:] == ".txt" {
-			subject = header.Filename[:len(header.Filename)-4]
-			hasAttachment = false
-		} else {
-			subject = header.Filename
-			hasAttachment = true
-			tmpFilename = path.Join(cfg.UploadTarget, header.Filename)
+		// read "x-input-type" header
+		inputType := c.GetHeader("x-input-type")
+		logrus.Debugf("Input type: %s", inputType)
 
-			err := os.WriteFile(tmpFilename, memoryBuffer.Bytes(), 0777)
+		switch inputType {
+
+		// handle text input
+		case "text":
+
+			logrus.Debug("Handling text input")
+
+			var jsonData struct {
+				Text string `json:"text"`
+			}
+
+			if err := c.BindJSON(&jsonData); err != nil {
+				logrus.Errorf("error binding json: %s", err)
+				c.JSON(400, gin.H{"msg": "error binding json"})
+				return
+			}
+
+			title = jsonData.Text
+			hasAttachment = false
+
+		// handle file input
+		case "file":
+
+			logrus.Info("Handling file input")
+
+			filename := c.GetHeader("X-filename")
+			targetEmail = determineTargetEmail(filename)
+
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				logrus.Errorf("error reading request body: %s", err)
+				c.JSON(400, gin.H{"msg": "error reading request body"})
+				return
+			}
+
+			fileOnDisk = path.Join(cfg.UploadTarget, filename)
+			err = os.WriteFile(fileOnDisk, bodyBytes, 0777)
 			if err != nil {
 				c.JSON(500, gin.H{"msg": "error writing temp file"})
 				return
 			}
+
+			title = filename
+			hasAttachment = true
 		}
 
-		targetEmail := determineTargetEmail(subject)
-
-		logrus.Debugf("subject: %s, file: %s, tempFilename: %s", subject, header.Filename, tmpFilename)
+		// start sending email now
+		subject := fmt.Sprintf("Quicknote: %s", title)
 		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
 
 		var (
@@ -78,14 +89,14 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 		)
 
 		if hasAttachment {
-			if err := m.SendMail(subject, targetEmail, body, []string{header.Filename}); err != nil {
+			if err := m.SendMail(subject, targetEmail, body, []string{path.Base(fileOnDisk)}); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
 
 			statsSource = "quicknotes_with_attachment"
-			responseMessage = fmt.Sprintf("(%s) note with attachment %s sent", humanize.Bytes(uint64(len(memoryBuffer.Bytes()))), header.Filename)
+			responseMessage = fmt.Sprintf("(%s) note with attachment %s sent", humanize.Bytes(getSizeInUint64(fileOnDisk)), path.Base(fileOnDisk))
 
 		} else {
 			if err := m.SendMail(subject, targetEmail, body, nil); err != nil {
@@ -118,4 +129,14 @@ func determineTargetEmail(s string) string {
 	}
 
 	return mailer.PrivateMail
+}
+
+func getSizeInUint64(filename string) uint64 {
+	fileInfo, err := os.Stat(filename)
+	if err != nil {
+		logrus.Errorf("error getting file info: %s", err)
+		return 0
+	}
+
+	return uint64(fileInfo.Size())
 }
