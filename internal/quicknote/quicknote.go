@@ -125,7 +125,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 			logrus.Errorf("Failed to increment stats for %s: %v", statsSource, err)
 		}
 
-		c.JSON(http.StatusOK, gin.H{"message": responseMessage})
+		c.JSON(http.StatusOK, gin.H{"msg": responseMessage})
 	}
 }
 
