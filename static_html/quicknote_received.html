@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+</head>
+
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #667eea;">
+    <!-- Outer table for full background -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+        style="background-color: #667eea; min-height: 100vh; padding: 40px 0;">
+        <tr>
+            <td align="center" valign="middle">
+
+                <!-- First table -->
+                <table width="500" cellpadding="0" cellspacing="0"
+                    style="background-color: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 90%; margin: 0 auto{{if .Attachment}} 30px auto{{end}};">
+                    <tr>
+                        <td style="padding: 40px; text-align: center;">
+                            <!-- Status icon -->
+                            <div
+                                style="width: 80px; height: 80px; background-color: #4CAF50; border-radius: 50%; margin: 0 auto 24px; display: inline-block; line-height: 80px; font-size: 40px; color: white;">
+                                ✓
+                            </div>
+
+                            <!-- Title -->
+                            <h2
+                                style="color: #2c3e50; font-size: 18px; font-weight: 600; margin: 0 0 16px 0; font-family: Arial, sans-serif;">
+                                {{.Title}}
+                            </h2>
+
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Second table - only show if attachment exists -->
+                {{if .Attachment}}
+                <table width="500" cellpadding="0" cellspacing="0"
+                    style="background-color: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 90%; margin: 0 auto;">
+                    <tr>
+                        <td style="padding: 40px; text-align: center;">
+                            <!-- Title -->
+                            <h2
+                                style="color: #2c3e50; font-size: 18px; font-weight: 600; margin: 0 0 16px 0; font-family: Arial, sans-serif;">
+                                Attachment
+                            </h2>
+
+                            <!-- Message -->
+                            <div
+                                style="color: #7f8c8d; font-size: 16px; font-weight: 400; line-height: 1.6; margin: 0 0 32px 0; font-family: Arial, sans-serif; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                <div
+                                    style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border-left: 4px solid #4CAF50;">
+                                    <div style="margin-bottom: 12px;">
+                                        <strong
+                                            style="color: #2c3e50; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Filename:</strong><br>
+                                        <span style="color: #34495e; font-size: 12px;">{{.Attachment.Filename}}</span>
+                                    </div>
+
+                                    <div style="margin-bottom: 12px;">
+                                        <strong
+                                            style="color: #2c3e50; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Size:</strong><br>
+                                        <span style="color: #34495e; font-size: 12px;">{{.Attachment.Size}}</span>
+                                    </div>
+
+                                    <div style="margin-bottom: 0;">
+                                        <strong
+                                            style="color: #2c3e50; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Type:</strong><br>
+                                        <span style="color: #34495e; font-size: 12px;">{{.Attachment.Type}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                {{end}}
+
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

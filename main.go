@@ -44,7 +44,7 @@ func main() {
 	// initialize all services
 	mailer := mailer.NewMailer(cfg)
 	homepage.Add(router, cfg, mailer, staticHtmlFS, db)
-	quicknote.NewQuicknote(router, cfg, mailer, db)
+	quicknote.NewQuicknote(router, cfg, mailer, db, staticHtmlFS)
 	greedy.NewGreedy(router, cfg, db)
 
 	// start serving

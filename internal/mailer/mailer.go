@@ -88,10 +88,8 @@ func (m *Mailer) SendMail(subject string, target string, body string, attachment
 }
 
 func defineBody(s string, b string) string {
-	logrus.Debugf("incoming subject: %s", s)
-	logrus.Debugf("incoming body: %s", b)
 
-	b = strings.ReplaceAll(b, "\n", "<br/>")
+	// b = strings.ReplaceAll(b, "\n", "<br/>")
 	return b
 }
 

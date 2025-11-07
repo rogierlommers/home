@@ -1,7 +1,10 @@
 package quicknote
 
 import (
+	"bytes"
+	"embed"
 	"fmt"
+	"html/template"
 	"io"
 	"os"
 	"path"
@@ -15,7 +18,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, stats *sqlitedb.DB) {
+var staticFS embed.FS
+
+type AttachmentInfo struct {
+	Filename string
+	Size     string
+	Type     string
+}
+
+func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, stats *sqlitedb.DB, staticHtmlFS embed.FS) {
+	staticFS = staticHtmlFS
 	router.POST("/api/notes/send", sendMailHandler(m, cfg, stats))
 }
 
@@ -80,8 +92,38 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 		}
 
 		// start sending email now
-		subject := fmt.Sprintf("Quicknote: %s", title)
-		body := fmt.Sprintf("Quicknote received:\n\n%s", subject)
+		htmlBytes, err := staticFS.ReadFile("static_html/quicknote_received.html")
+		if err != nil {
+			logrus.Errorf("Error reading static html: %v", err)
+			c.String(500, "Failed to load file notify page")
+			return
+		}
+
+		// run template
+		tmpl, err := template.New("quicknote_received.html").Parse(string(htmlBytes))
+		if err != nil {
+			logrus.Errorf("Error parsing template: %v", err)
+			c.String(500, "Failed to parse template")
+			return
+		}
+
+		// Then fix your data struct and attachment handling:
+		// data to pass to the template
+		data := struct {
+			Title      string
+			Attachment *AttachmentInfo // Use pointer to AttachmentInfo
+		}{Title: title}
+
+		if hasAttachment {
+			addAttachmentInfo(&data, fileOnDisk)
+		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, data); err != nil {
+			logrus.Errorf("Error executing template: %v", err)
+			c.String(500, "Failed to render file storage page")
+			return
+		}
 
 		var (
 			statsSource     string
@@ -89,7 +131,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 		)
 
 		if hasAttachment {
-			if err := m.SendMail(subject, targetEmail, body, []string{path.Base(fileOnDisk)}); err != nil {
+			if err := m.SendMail(data.Title, targetEmail, buf.String(), []string{path.Base(fileOnDisk)}); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
@@ -99,14 +141,14 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 			responseMessage = fmt.Sprintf("(%s) note with attachment %s sent", humanize.Bytes(getSizeInUint64(fileOnDisk)), path.Base(fileOnDisk))
 
 		} else {
-			if err := m.SendMail(subject, targetEmail, body, nil); err != nil {
+			if err := m.SendMail(data.Title, targetEmail, buf.String(), nil); err != nil {
 				logrus.Errorf("sendMail error: %s", err)
 				c.JSON(500, gin.H{"msg": fmt.Sprintf("error: mail error: %s", err)})
 				return
 			}
 
 			statsSource = "quicknotes_no_attachment"
-			responseMessage = fmt.Sprintf("(%s) note without attachment sent", humanize.Bytes(uint64(len(body))))
+			responseMessage = fmt.Sprintf("(%s) note without attachment sent", humanize.Bytes(uint64(len(buf.Bytes()))))
 
 		}
 
@@ -139,4 +181,30 @@ func getSizeInUint64(filename string) uint64 {
 	}
 
 	return uint64(fileInfo.Size())
+}
+
+func addAttachmentInfo(data *struct {
+	Title      string
+	Attachment *AttachmentInfo
+}, fileOnDisk string) {
+
+	fileInfo, err := os.Stat(fileOnDisk)
+	if err != nil {
+		logrus.Errorf("error getting file info: %s", err)
+		return
+	}
+
+	data.Attachment = &AttachmentInfo{
+		Filename: path.Base(fileOnDisk),
+		Size:     humanize.Bytes(uint64(fileInfo.Size())),
+		Type:     getFileType(fileOnDisk),
+	}
+}
+
+func getFileType(filename string) string {
+	ext := strings.ToLower(path.Ext(filename))
+	if ext == "" {
+		return "unknown"
+	}
+	return ext[1:] // remove the dot
 }
