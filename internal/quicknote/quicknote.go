@@ -64,6 +64,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 
 			title = jsonData.Text
 			hasAttachment = false
+			targetEmail = determineTargetEmail(title)
 
 		// handle file input
 		case "file":
