@@ -66,6 +66,10 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 			hasAttachment = false
 			targetEmail = determineTargetEmail(title)
 
+			if targetEmail == mailer.WorkMail {
+				title = stripWorkPrefix(title)
+			}
+
 		// handle file input
 		case "file":
 
@@ -208,4 +212,14 @@ func getFileType(filename string) string {
 		return "unknown"
 	}
 	return ext[1:] // remove the dot
+}
+
+func stripWorkPrefix(s string) string {
+	subject := strings.ToLower(s)
+
+	if len(subject) >= 2 && subject[:2] == "w " {
+		return s[2:]
+	}
+
+	return s
 }
