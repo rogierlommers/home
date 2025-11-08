@@ -52,7 +52,8 @@ func NewQuicknote(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, st
 func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		inputType := c.GetHeader("x-input-type")
-		logrus.Debugf("Processing input type: %s", inputType)
+		testHeader := c.GetHeader("x-test")
+		logrus.Debugf("Processing input type: %s, testHeader: %s", inputType, testHeader)
 
 		var (
 			title         string
@@ -140,9 +141,9 @@ func handleTextInput(c *gin.Context) (string, error) {
 
 // handleFileInput processes file-based quicknotes
 func handleFileInput(c *gin.Context, uploadTarget string) (string, string, error) {
-	filename := c.GetHeader("X-filename")
+	filename := c.GetHeader("x-filename")
 	if filename == "" {
-		return "", "", fmt.Errorf("missing X-filename header")
+		return "", "", fmt.Errorf("missing x-filename header")
 	}
 
 	bodyBytes, err := io.ReadAll(c.Request.Body)
