@@ -30,6 +30,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/bookmarks/edit", displayEditBookmarks)
 	router.GET("/api/bookmarks", getBookmarks(db, cfg.XHomeAPIKey))
 	router.GET("/api/categories", displayCategories(db))
+	router.GET("/api/bookmarks/export", createImportScript(db, cfg.XHomeAPIKey))
 	router.POST("/api/bookmarks", addBookmark(db, cfg.XHomeAPIKey))
 	router.PUT("/api/bookmarks/:id", editBookmark(db))
 	router.DELETE("/api/bookmarks/:id", deleteBookmark(db))

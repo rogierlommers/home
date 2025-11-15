@@ -3,6 +3,8 @@ package sqlitedb
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -119,10 +121,54 @@ func (s *DB) UpdateBookmark(item Item) error {
 	return err
 }
 
+// GenerateImportScript generates a SQL script to import bookmarks
+// in this format:
+// add_bookmark 1 0 false "GOT bookmarks" "https://gathering.tweakers.net/forum/list_bookmarks"
+func (s *DB) GenerateImportScript() (string, error) {
+	rows, err := s.Conn.Query(`
+        SELECT title, arg, category_id, hide_in_gui, COALESCE(priority, 0) as priority
+        FROM bookmark_items
+        ORDER BY priority DESC, id ASC
+    `)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	var builder strings.Builder
+	for rows.Next() {
+		var title, arg string
+		var categoryID, priority int
+		var hideInGUI bool
+
+		if err := rows.Scan(&title, &arg, &categoryID, &hideInGUI, &priority); err != nil {
+			logrus.Errorf("Failed to scan row for import script: %v", err)
+			return "", err
+		}
+
+		fmt.Fprintf(&builder, "add_bookmark %d %d %t %q %q\n",
+			categoryID, priority, hideInGUI, title, arg)
+	}
+
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+
+	return builder.String(), nil
+}
+
 func convertSHA256(input string) string {
 	// Generate SHA256 hash
 	hash := sha256.Sum256([]byte(input))
 
 	// Convert to hexadecimal string
 	return hex.EncodeToString(hash[:])
+}
+
+func boolToString(b bool) string {
+	if b {
+		return "true"
+	}
+
+	return "false"
 }

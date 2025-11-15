@@ -46,6 +46,27 @@ func getBookmarks(db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
 	}
 }
 
+func createImportScript(db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		apiKey := c.GetHeader("X-HOME-API-KEY")
+		if !isAuthenticated(c) && apiKey != XAPIkey {
+			c.String(401, "Unauthorized")
+			return
+		}
+
+		script, err := db.GenerateImportScript()
+		if err != nil {
+			logrus.Errorf("Failed to generate import script: %v", err)
+			c.String(500, "Failed to generate import script")
+			return
+		}
+
+		c.Header("Content-Type", "text/plain")
+		c.String(200, script)
+	}
+}
+
 func displayCategories(db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !isAuthenticated(c) {
