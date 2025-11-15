@@ -48,14 +48,14 @@ func InitDatabase(cfg config.AppConfig) *DB {
 
 	logrus.Debugf("Database initialized, file: %s", cfg.Database)
 
-	insertTemplateData(db)
+	createCategories(db)
 
 	return &DB{
 		Conn: db,
 	}
 }
 
-func insertTemplateData(db *sql.DB) {
+func createCategories(db *sql.DB) {
 
 	categories := map[string]bool{
 		"Personal":     false,
@@ -72,23 +72,6 @@ func insertTemplateData(db *sql.DB) {
 		}
 	}
 
-	// then add items
-	items := []Item{
-		// {Title: "Google", Arg: "https://google.com", CategoryID: 1, HideInGUI: false},
-		// {Title: "GitHub", Arg: "https://github.com", CategoryID: 2, HideInGUI: false},
-		// {Title: "Personal Blog", Arg: "https://myblog.com", CategoryID: 3, HideInGUI: false},
-		// {Title: "poep", Arg: "https://myblosg.comd", CategoryID: 4, HideInGUI: true},
-		// {Title: "poep2", Arg: "https://mybdfsfsg.comd", CategoryID: 4, HideInGUI: true},
-	}
-
-	for _, item := range items {
-		_, err := db.Exec(`INSERT OR IGNORE INTO bookmark_items (type, title, arg, autocomplete, category_id, hide_in_gui) VALUES (?, ?, ?, ?, ?)`,
-			item.Title, item.Arg, item.CategoryID, item.HideInGUI)
-		if err != nil {
-			logrus.Errorf("failed to insert bookmark item %s: %v", item.Title, err)
-		}
-		logrus.Debugf("Inserted bookmark item: %+v", item)
-	}
 }
 
 func (s *DB) Close() {
