@@ -32,13 +32,14 @@ func InitDatabase(cfg config.AppConfig) *DB {
             arg TEXT UNIQUE,
             category_id INTEGER not null,
             hide_in_gui BOOLEAN DEFAULT 0,
+            priority INTEGER,
             FOREIGN KEY (category_id) REFERENCES bookmark_categories(id)
         );
 
         CREATE TABLE IF NOT EXISTS bookmark_categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-			hide_in_gui BOOLEAN DEFAULT 0
+            hide_in_gui BOOLEAN DEFAULT 0
         );
     `)
 	if err != nil {

@@ -23,24 +23,23 @@
         .edit-table input[type="url"] {
             width: 140px;
             min-width: 60px;
-        }
-
-        .edit-table input[type="number"].edit-category {
-            width: 50px;
-            min-width: 30px;
-            max-width: 70px;
+            font-size: 0.85em;
+            padding: 4px 6px;
         }
 
         .edit-table select.edit-category {
-            width: 120px;
-            min-width: 100px;
+            width: 100px;
+            min-width: 80px;
+            font-size: 0.85em;
+            padding: 4px 6px;
         }
 
         .edit-table th,
         .edit-table td {
             vertical-align: middle;
-            padding: 0.1em 0.3em;
+            padding: 0.2em 0.3em;
             border: none !important;
+            white-space: nowrap;
         }
 
         .edit-table input[type="checkbox"] {
@@ -48,18 +47,57 @@
         }
 
         .edit-table button {
-            margin: 0 2px;
-            padding: 2px 10px;
+            margin: 0 1px;
+            padding: 2px 6px;
             min-width: unset;
             width: auto;
-            font-size: 0.6em;
+            font-size: 0.7em;
             line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .priority-arrows {
+            display: flex;
+            flex-direction: row;
+            gap: 2px;
+        }
+
+        .priority-arrows button {
+            padding: 2px 6px;
+            font-size: 0.75em;
+            line-height: 1;
+            min-width: 24px;
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 2px;
+            flex-wrap: nowrap;
         }
 
         #editBookmarksTable {
             width: auto;
             max-width: none;
             margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        /* Make form more compact */
+        #addBookmarkForm input,
+        #addBookmarkForm select {
+            font-size: 0.9em;
+            padding: 6px 8px;
+        }
+
+        #addBookmarkForm label {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        #addBookmarkForm .button {
+            padding: 6px 12px;
+            font-size: 0.85em;
         }
     </style>
 </head>
@@ -78,24 +116,26 @@
             <!-- Add bookmark form-->
             <h4 style="margin-top: 2em;">Add New Bookmark</h4>
             <form id="addBookmarkForm" style="margin-bottom:2em;">
-                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
-                    <div style="flex:1; min-width:180px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                    <div style="flex:1; min-width:150px;">
                         <label for="bmTitle">Title</label>
                         <input type="text" id="bmTitle" name="title" required />
                     </div>
-                    <div style="flex:1; min-width:180px;">
+                    <div style="flex:1; min-width:150px;">
                         <label for="bmArg">URL</label>
                         <input type="url" id="bmArg" name="arg" required />
                     </div>
-                    <div style="flex:1; min-width:180px;">
+                    <div style="flex:0 0 auto; min-width:120px;">
                         <label for="bmCategory">Category</label>
                         <select id="bmCategory" name="category" required>
                             <option value="">Loading...</option>
                         </select>
                     </div>
+                    <div style="flex:0 0 auto;">
+                        <button type="submit" class="button">Add</button>
+                    </div>
                 </div>
-                <button type="submit" class="button" style="margin-top:12px;">Add Bookmark</button>
-                <span id="addBookmarkStatus" style="margin-left:1em;"></span>
+                <span id="addBookmarkStatus" style="margin-top:8px; display:inline-block;"></span>
             </form>
 
             <h4 style="margin-top: 2em;">Existing bookmarks</h4>
@@ -105,11 +145,16 @@
         </section>
     </main>
     <script>
+        let allBookmarks = []; // Store all bookmarks for reordering
+
         // Fetch and render all bookmarks in an editable table
         function loadEditBookmarks() {
             fetch('/api/bookmarks')
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
-                .then(data => renderEditBookmarksTable(data.items))
+                .then(data => {
+                    allBookmarks = data.items || [];
+                    renderEditBookmarksTable(allBookmarks);
+                })
                 .catch(() => {
                     document.getElementById('editBookmarksTable').textContent = 'Failed to load bookmarks.';
                 });
@@ -123,16 +168,17 @@
             let html = `<table class="edit-table">
                 <thead>
                     <tr>
+                        <th>Priority</th>
                         <th>Title</th>
                         <th>URL</th>
                         <th>Category</th>
-                        <th>Hide in GUI</th>
+                        <th>Hide</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
             `;
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 // Create category dropdown options
                 let categoryOptions = '';
                 Object.entries(categoryIdToName).forEach(([id, name]) => {
@@ -141,11 +187,17 @@
                 });
 
                 html += `
-                    <tr data-id="${item.id}">
+                    <tr data-id="${item.id}" data-index="${index}">
+                        <td>
+                            <div class="priority-arrows">
+                                <button class="button button-outline move-up-btn" type="button" ${index === 0 ? 'disabled' : ''}>↑</button>
+                                <button class="button button-outline move-down-btn" type="button" ${index === items.length - 1 ? 'disabled' : ''}>↓</button>
+                            </div>
+                        </td>
                         <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
                         <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
                         <td>
-                            <select class="edit-category" style="width:120px;">
+                            <select class="edit-category">
                                 ${categoryOptions}
                             </select>
                         </td>
@@ -153,9 +205,10 @@
                             <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
                         </td>
                         <td>
-                            <button class="button button-outline save-btn" type="button">Save</button>
-                            <button class="button button-outline cancel-btn" type="button">Cancel</button>
-                            <button class="button button-outline delete-btn" type="button" style="color:#d9534f;">Delete</button>
+                            <div class="action-buttons">
+                                <button class="button button-outline save-btn" type="button">Save</button>
+                                <button class="button button-outline delete-btn" type="button" style="color:#d9534f;">Del</button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -163,16 +216,32 @@
             html += '</tbody></table>';
             document.getElementById('editBookmarksTable').innerHTML = html;
 
-            // Add event listeners for Save, Cancel, and Delete
+            // Add event listeners for Priority arrows
+            document.querySelectorAll('.move-up-btn').forEach(btn => {
+                btn.onclick = function () {
+                    const row = btn.closest('tr');
+                    const index = parseInt(row.getAttribute('data-index'));
+                    if (index > 0) {
+                        moveBookmarkPriority(index, 'up');
+                    }
+                };
+            });
+
+            document.querySelectorAll('.move-down-btn').forEach(btn => {
+                btn.onclick = function () {
+                    const row = btn.closest('tr');
+                    const index = parseInt(row.getAttribute('data-index'));
+                    if (index < allBookmarks.length - 1) {
+                        moveBookmarkPriority(index, 'down');
+                    }
+                };
+            });
+
+            // Add event listeners for Save and Delete
             document.querySelectorAll('.save-btn').forEach(btn => {
                 btn.onclick = function () {
                     const row = btn.closest('tr');
                     saveBookmarkRow(row);
-                };
-            });
-            document.querySelectorAll('.cancel-btn').forEach(btn => {
-                btn.onclick = function () {
-                    loadEditBookmarks();
                 };
             });
             document.querySelectorAll('.delete-btn').forEach(btn => {
@@ -198,11 +267,45 @@
             });
         }
 
+        function moveBookmarkPriority(index, direction) {
+            const bookmark = allBookmarks[index];
+            const currentPriority = bookmark.priority || 0;
+            const newPriority = direction === 'up' ? currentPriority + 1 : currentPriority - 1;
+
+            // dump full request
+            console.debug(`Changing priority of bookmark ID ${bookmark.id} from ${currentPriority} to ${newPriority}`);
+            console.debug(bookmark)
+
+            // Update the single bookmark with new priority
+            fetch(`/api/bookmarks/${bookmark.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: bookmark.title,
+                    arg: bookmark.arg,
+                    category_id: bookmark.category_id,
+                    hide_in_gui: bookmark.hide_in_gui,
+                    priority: newPriority
+                })
+            })
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(() => {
+                    document.getElementById('editBookmarksStatus').textContent = 'Priority updated!';
+                    document.getElementById('editBookmarksStatus').style.color = 'green';
+                    // Reload to get the updated order from the server
+                    loadEditBookmarks();
+                })
+                .catch(() => {
+                    document.getElementById('editBookmarksStatus').textContent = 'Failed to update priority.';
+                    document.getElementById('editBookmarksStatus').style.color = 'red';
+                });
+        }
+
         function saveBookmarkRow(row) {
             const id = row.getAttribute('data-id');
             const title = row.querySelector('.edit-title').value;
             const arg = row.querySelector('.edit-arg').value;
-            const category_id = parseInt(row.querySelector('.edit-category').value, 10); // This now gets from select
+            const category_id = parseInt(row.querySelector('.edit-category').value, 10);
             const hide_in_gui = row.querySelector('.edit-hide').checked;
 
             console.log("Updating bookmark:", { id, title, arg, category_id, hide_in_gui });
@@ -235,12 +338,11 @@
             fetch('/api/categories')
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(data => {
-                    console.log("Categories API response:", data); // Debug log
+                    console.log("Categories API response:", data);
                     const select = document.getElementById('bmCategory');
                     select.innerHTML = '';
                     categoryIdToName = {};
                     
-                    // Handle both possible response formats
                     const categories = Array.isArray(data) ? data : (data.items || data.categories || []);
                     
                     if (categories.length > 0) {
@@ -302,9 +404,8 @@
                 });
         };
 
-        // Initial load - load categories first, then bookmarks
+        // Initial load
         loadCategoriesDropdown();
-        // Add a small delay or callback to ensure categories load first
         setTimeout(() => {
             loadEditBookmarks();
         }, 100);

@@ -19,6 +19,7 @@ type Item struct {
 	ID         int    `json:"id"`  // id in the database
 	Title      string `json:"title"`
 	Arg        string `json:"arg"`
+	Priority   int    `json:"priority,omitempty"`
 	CategoryID int    `json:"category_id"`
 	HideInGUI  bool   `json:"hide_in_gui,omitempty"`
 }
@@ -34,9 +35,9 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	Bookmarks.Cache.Seconds = 3600 // tell Alfred to cache for 1 hour
 
 	rows, err := s.Conn.Query(`
-    SELECT b.id, b.title, b.arg, b.category_id, b.hide_in_gui
+    SELECT b.id, b.title, b.arg, b.category_id, b.hide_in_gui, b.priority
     FROM bookmark_items b
-    ORDER BY b.id ASC
+    ORDER BY b.priority DESC
 `)
 	if err != nil {
 		return Bookmarks, err
@@ -46,7 +47,7 @@ func (s *DB) GetBookmarks() (Bookmarks, error) {
 	for rows.Next() {
 		var i Item
 
-		if err := rows.Scan(&i.ID, &i.Title, &i.Arg, &i.CategoryID, &i.HideInGUI); err != nil {
+		if err := rows.Scan(&i.ID, &i.Title, &i.Arg, &i.CategoryID, &i.HideInGUI, &i.Priority); err != nil {
 			logrus.Errorf("Failed to scan row: %v", err)
 			return Bookmarks, err
 		}
@@ -113,8 +114,8 @@ func (s *DB) DeleteBookmark(id int) error {
 func (s *DB) UpdateBookmark(item Item) error {
 	_, err := s.Conn.Exec(`
 		UPDATE bookmark_items
-		SET title = ?, arg = ?, category_id = ?, hide_in_gui = ?
-		WHERE id = ?`, item.Title, item.Arg, item.CategoryID, item.HideInGUI, item.ID)
+		SET title = ?, arg = ?, category_id = ?, hide_in_gui = ?, priority = ?
+		WHERE id = ?`, item.Title, item.Arg, item.CategoryID, item.HideInGUI, item.Priority, item.ID)
 	return err
 }
 
