@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
-	homeassistant "github.com/rogierlommers/home/internal/home_assistant"
+	"github.com/rogierlommers/home/internal/homeassistant"
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/rogierlommers/home/internal/quicknote"
