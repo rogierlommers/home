@@ -14,6 +14,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// curl -X POST "https://home.lommers.org/api/home-assistant" -H "Content-Type: application/json" -d '{"entity": "entity: haha","message": "message: hihi"}'
+
 var memcach *Cache
 
 type Message struct {
@@ -26,7 +28,7 @@ type Message struct {
 func NewClient(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, db *sqlitedb.DB) {
 
 	// first create in-memory cache with maximum size of x entries
-	memcach = newCache(10)
+	memcach = newCache(100)
 
 	router.POST("/api/home-assistant", incomingMessage(m, cfg, db))
 	router.GET("/api/home-assistant/feed", displayRSS(db))
@@ -47,7 +49,7 @@ func incomingMessage(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.DB) gi
 		// add message to in-memory cache
 		logrus.Debugf("incoming message from Home Assistant: entity=%s, message=%s", msg.Entity, msg.Message)
 		msg.Added = time.Now()
-		memcach.Add(&msg)
+		memcach.Add(msg)
 
 		// respond okay
 		c.JSON(http.StatusOK, gin.H{"msg": "all fine!"})

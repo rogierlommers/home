@@ -3,10 +3,9 @@ package homeassistant
 import "sync"
 
 type Cache struct {
-	id          int
 	maxElements int
 	mu          sync.RWMutex
-	elements    []interface{}
+	elements    []any
 }
 
 func newCache(maxElements int) *Cache {
@@ -15,7 +14,7 @@ func newCache(maxElements int) *Cache {
 	}
 }
 
-func (h *Cache) Add(newElement interface{}) {
+func (h *Cache) Add(newElement any) {
 	h.mu.Lock()
 
 	if len(h.elements) >= h.maxElements {
@@ -27,12 +26,12 @@ func (h *Cache) Add(newElement interface{}) {
 	h.mu.Unlock()
 }
 
-func (h *Cache) GetElements() []interface{} {
+func (h *Cache) GetElements() []any {
 	return h.elements
 }
 
-func (h *Cache) GetElementsReversed() []interface{} {
-	var reversed []interface{}
+func (h *Cache) GetElementsReversed() []any {
+	var reversed []any
 
 	for i := len(h.elements) - 1; i >= 0; i-- {
 		reversed = append(reversed, h.elements[i])
