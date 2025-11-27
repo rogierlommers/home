@@ -45,6 +45,7 @@ func incomingMessage(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.DB) gi
 		}
 
 		// add message to in-memory cache
+		logrus.Debugf("incoming message from Home Assistant: entity=%s, message=%s", msg.Entity, msg.Message)
 		msg.Added = time.Now()
 		memcach.Add(&msg)
 
