@@ -1,7 +1,9 @@
 package homeassistant
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -14,7 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// curl -X POST "https://home.lommers.org/api/home-assistant" -H "Content-Type: application/json" -d '{"entity": "entity: haha","message": "message: hihi"}'
+// curl -X POST "https://home.lommers.org/api/home-assistant" -H "Content-Type: application/json" -d '{"entity": "haha","message": "hihi"}'
+// curl -X POST "http://localhost:3000/api/home-assistant" -H "Content-Type: application/json" -d '{"entity": "haha","message": "hihi"}'
 
 var memcach *Cache
 
@@ -35,13 +38,38 @@ func NewClient(router *gin.Engine, cfg config.AppConfig, m *mailer.Mailer, db *s
 
 }
 
+// dumpRequestBody reads and logs the request body, then restores it for further processing
+func dumpRequestBody(c *gin.Context) error {
+	bodyBytes, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		logrus.Errorf("Failed to read request body: %v", err)
+		return err
+	}
+
+	// Log the raw body
+	logrus.Debugf("Request body: %s", string(bodyBytes))
+
+	// Restore the body so it can be read again
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	return nil
+}
+
 // documentation here: https://www.home-assistant.io/integrations/rest_command
 func incomingMessage(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
+		// first dump body
+		if err := dumpRequestBody(c); err != nil {
+			logrus.Errorf("failed to read JSON: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read request body"})
+			return
+		}
+
 		// unmarshall body into message
 		var msg Message
 		if err := c.ShouldBindJSON(&msg); err != nil {
+			logrus.Errorf("failed to bind JSON: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
