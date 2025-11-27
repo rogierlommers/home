@@ -27,7 +27,7 @@ func homeAssistantEntities(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.
 			return
 		}
 
-		logrus.Debugf("Received Home Assistant webhook: %s", string(body))
+		logrus.Errorf("Received Home Assistant webhook: %s", string(body))
 
 		c.JSON(http.StatusOK, gin.H{"msg": "all fine!"})
 	}
