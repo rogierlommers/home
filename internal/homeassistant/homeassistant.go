@@ -49,7 +49,7 @@ func incomingMessage(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.DB) gi
 		// add message to in-memory cache
 		logrus.Debugf("incoming message from Home Assistant: entity=%s, message=%s", msg.Entity, msg.Message)
 		msg.Added = time.Now()
-		memcach.Add(msg)
+		memcach.Add(&msg)
 
 		// respond okay
 		c.JSON(http.StatusOK, gin.H{"msg": "all fine!"})
@@ -76,8 +76,11 @@ func displayRSS(db *sqlitedb.DB) gin.HandlerFunc {
 		var newItem *feeds.Item
 
 		for _, a := range messages {
-			incomingMessage := a.(*Message).Message
+
+			logrus.Debugf("cached message: entity=%s, message=%s", a.(*Message).Entity, a.(*Message).Message)
+
 			incomingEntity := a.(*Message).Entity
+			incomingMessage := a.(*Message).Message
 			incomingTimestamp := a.(*Message).Added
 
 			newItem = &feeds.Item{
