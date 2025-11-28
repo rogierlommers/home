@@ -46,7 +46,7 @@ func dumpRequestBody(c *gin.Context) error {
 }
 
 // documentation here: https://www.home-assistant.io/integrations/rest_command
-func eventsIncomingMessage(m *mailer.Mailer, cfg config.AppConfig, db *sqlitedb.DB) gin.HandlerFunc {
+func eventsIncomingMessage(m *mailer.Mailer, db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// first dump body
@@ -129,7 +129,7 @@ func addEvent(db *sqlitedb.DB, msg Message) error {
 
 func getEvents(db *sqlitedb.DB, number int) []Message {
 	rows, err := db.Conn.Query(`
-		SELECT id, label, message, category, added
+		SELECT id, label, message, category, added, source
 		FROM events
 		ORDER BY id DESC
 		LIMIT ?
@@ -143,7 +143,7 @@ func getEvents(db *sqlitedb.DB, number int) []Message {
 	var events []Message
 	for rows.Next() {
 		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.Label, &msg.Message, &msg.Category, &msg.Added); err != nil {
+		if err := rows.Scan(&msg.ID, &msg.Label, &msg.Message, &msg.Category, &msg.Added, &msg.Source); err != nil {
 			logrus.Errorf("failed to scan event row: %v", err)
 			continue
 		}

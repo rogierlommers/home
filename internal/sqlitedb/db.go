@@ -2,7 +2,6 @@ package sqlitedb
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/sirupsen/logrus"
@@ -60,7 +59,7 @@ func InitDatabase(cfg config.AppConfig) *DB {
         `)
 
 	if err != nil {
-		log.Fatalf("failed to create table: %v", err)
+		logrus.Fatalf("failed to create table: %v", err)
 	}
 
 	logrus.Debugf("Database initialized, file: %s", cfg.Database)
