@@ -110,7 +110,7 @@
             <!-- Navigation Links -->
             <h4><a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) / <a
                     href="/statistics">statistics</a> /
-                <a href="/notify">notify</a> / <a href="/storage">storage</a>
+                <a href="notify">notify</a> / <a href="storage">storage</a> / <a href="/events">events</a>
             </h4>
 
             <!-- Add bookmark form-->
@@ -342,9 +342,9 @@
                     const select = document.getElementById('bmCategory');
                     select.innerHTML = '';
                     categoryIdToName = {};
-                    
+
                     const categories = Array.isArray(data) ? data : (data.items || data.categories || []);
-                    
+
                     if (categories.length > 0) {
                         categories.forEach(cat => {
                             categoryIdToName[cat.id] = cat.name;

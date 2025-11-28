@@ -44,6 +44,13 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 	router.GET("/api/download/:filename", downloadFile(cfg))
 	router.POST("/api/upload", uploadFiles(cfg, mailer, db))
 
+	// events
+	router.GET("/events", serveEventsHTML(cfg))
+	router.POST("/api/events", eventsIncomingMessage(mailer, cfg, db))
+	router.GET("/api/events", displayEvents(db))
+	router.GET("/api/events/categories", displayEventsCategories(db))
+	router.GET("/api/events/labels", displayEventsLabels(db))
+
 	// cleanup
 	scheduleCleanup(cfg, db)
 }

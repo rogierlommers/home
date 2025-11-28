@@ -41,7 +41,24 @@ func InitDatabase(cfg config.AppConfig) *DB {
             name TEXT UNIQUE NOT NULL,
             hide_in_gui BOOLEAN DEFAULT 0
         );
-    `)
+
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source TEXT,
+            label TEXT NOT NULL,
+            message TEXT NOT NULL,
+            category TEXT,
+            added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_ha_events_categories
+        ON events (category);
+
+        CREATE INDEX IF NOT EXISTS idx_ha_events_labels
+        ON events (label);
+
+        `)
+
 	if err != nil {
 		log.Fatalf("failed to create table: %v", err)
 	}

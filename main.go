@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/greedy"
-	"github.com/rogierlommers/home/internal/homeassistant"
 	"github.com/rogierlommers/home/internal/homepage"
 	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/rogierlommers/home/internal/quicknote"
@@ -47,7 +46,6 @@ func main() {
 	homepage.Add(router, cfg, mailer, staticHtmlFS, db)
 	quicknote.NewQuicknote(router, cfg, mailer, db, staticHtmlFS)
 	greedy.NewGreedy(router, cfg, db)
-	homeassistant.NewClient(router, cfg, mailer, db)
 
 	// start serving
 	logrus.Infof("listening on http://%s", cfg.HostPort)

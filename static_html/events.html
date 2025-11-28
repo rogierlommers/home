@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>home service</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css" />
+    <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #888;
+            margin-top: 2em;
+            transition: border-color 0.2s;
+        }
+
+        .drop-zone.dragover {
+            border-color: #333;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        .drop-zone input {
+            display: none;
+        }
+
+        #progressContainer {
+            width: 100%;
+            background: #eee;
+            border-radius: 4px;
+            margin: 1em 0;
+            height: 18px;
+            display: none;
+        }
+
+        #progressBar {
+            height: 100%;
+            width: 0%;
+            background: #9b4dca;
+            border-radius: 4px;
+            transition: width 0.2s;
+        }
+
+        .logout-btn {
+            margin-bottom: 2em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrapper">
+
+        <section class="container" id="examples">
+            <h1 class="title">home service</h1>
+
+            <!-- Navigation Links -->
+            <h4><a href="/bookmarks">bookmarks</a> (<a href="/bookmarks/edit">#</a>) / <a
+                    href="/statistics">statistics</a> /
+                <a href="notify">notify</a> / <a href="storage">storage</a> / <a href="/events">events</a>
+            </h4>
+
+            <form id="categoryFilterForm" style="margin-top: 2em;">
+                <h4>Filter by Category</h4>
+                <div id="categoryCheckboxes">
+                    <p>Loading categories...</p>
+                </div>
+                <button type="submit" class="button" style="margin-top: 1em;">Filter</button>
+            </form>
+
+            <h4 style="margin-top: 2em;">Events</h4>
+            <div id="eventsTableContainer">
+                <p>Loading events...</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkboxContainer = document.getElementById('categoryCheckboxes');
+            const eventsContainer = document.getElementById('eventsTableContainer');
+            const filterForm = document.getElementById('categoryFilterForm');
+
+            // Function to fetch and display events
+            function loadEvents(queryString = '') {
+                eventsContainer.innerHTML = '<p>Loading events...</p>';
+                fetch(`/api/events?${queryString}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                        return response.json();
+                    })
+                    .then(events => {
+                        if (!events || events.length === 0) {
+                            eventsContainer.innerHTML = '<p>No events found for the selected criteria.</p>';
+                            return;
+                        }
+
+                        let tableHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Source</th>
+                                        <th>Label</th>
+                                        <th>Message</th>
+                                        <th>Category</th>
+                                        <th>Added</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        events.forEach(event => {
+                            tableHTML += `
+                                <tr>
+                                    <td>${event.id}</td>
+                                    <td>${event.source || '-'}</td>
+                                    <td>${event.label || '-'}</td>
+                                    <td>${event.message || '-'}</td>
+                                    <td>${event.category || '-'}</td>
+                                    <td>${new Date(event.added).toLocaleString()}</td>
+                                </tr>
+                            `;
+                        });
+                        tableHTML += '</tbody></table>';
+                        eventsContainer.innerHTML = tableHTML;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        eventsContainer.innerHTML = '<p style="color: red;">Error loading events.</p>';
+                    });
+            }
+
+            // Function to fetch and display categories
+            function loadCategories() {
+                fetch('/api/events/categories')
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                        return response.json();
+                    })
+                    .then(categories => {
+                        if (!categories || categories.length === 0) {
+                            checkboxContainer.innerHTML = '<p>No categories found.</p>';
+                            return;
+                        }
+
+                        let checkboxesHTML = '';
+                        categories.forEach(categoryName => {
+                            const categoryId = `cat-${categoryName.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                            checkboxesHTML += `
+                                <div>
+                                    <input type="checkbox" id="${categoryId}" name="category" value="${categoryName}">
+                                    <label class="label-inline" for="${categoryId}">${categoryName}</label>
+                                </div>
+                            `;
+                        });
+                        checkboxContainer.innerHTML = checkboxesHTML;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching categories:', error);
+                        checkboxContainer.innerHTML = '<p style="color: red;">Error loading categories.</p>';
+                    });
+            }
+
+            // Handle form submission for filtering
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const checkedBoxes = document.querySelectorAll('#categoryCheckboxes input[name="category"]:checked');
+                const params = new URLSearchParams();
+                checkedBoxes.forEach(checkbox => {
+                    params.append('category', checkbox.value);
+                });
+                loadEvents(params.toString());
+            });
+
+            // Initial load
+            loadCategories();
+            loadEvents();
+        });
+    </script>
+
+</body>
+
+</html>
