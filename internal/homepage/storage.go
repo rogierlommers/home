@@ -219,24 +219,48 @@ func downloadFile(cfg config.AppConfig) gin.HandlerFunc {
 	}
 }
 
-func scheduleCleanup(cfg config.AppConfig, statsDB *sqlitedb.DB) {
+func scheduleCleanup(cfg config.AppConfig, db *sqlitedb.DB) {
 	c := cron.New()
 
 	// schedule to run every day at 15:00
 	_, err := c.AddFunc("0 15 * * *", func() {
 		// cleanup files older than cfg.CleanUpInDys days
-		cleanupOldFiles(cfg.UploadTarget, time.Duration(cfg.FileCleanUpInDys)*24*time.Hour, statsDB)
+		cleanupOldFiles(cfg.UploadTarget, time.Duration(cfg.FileCleanUpInDys)*24*time.Hour, db)
 	})
 	if err != nil {
 		logrus.Errorf("failed to schedule cleanup: %v", err)
 		return
 	}
 
-	logrus.Infof("scheduled %d-daily cleanup of old files in %s", cfg.FileCleanUpInDys, cfg.UploadTarget)
+	// schedule to run every day at 16:00
+	_, err = c.AddFunc("0 16 * * *", func() {
+		// cleanup old events
+		deleted, err := db.DeleteOldEvents()
+		if err != nil {
+			logrus.Errorf("failed to cleanup old events: %v", err)
+			return
+		}
+
+		event := Message{
+			Source:   "system",
+			Category: "cleanup",
+			Message:  fmt.Sprintf("daily cleanup deleted %d events ", deleted),
+		}
+
+		if err := addEvent(db, event); err != nil {
+			logrus.Errorf("failed to log cleanup event: %v", err)
+		}
+	})
+	if err != nil {
+		logrus.Errorf("failed to schedule cleanup: %v", err)
+		return
+	}
+
+	logrus.Infof("scheduled %d-daily cleanup of old stuff", cfg.FileCleanUpInDys)
 	c.Start()
 }
 
-func cleanupOldFiles(dir string, maxAge time.Duration, statsDB *sqlitedb.DB) {
+func cleanupOldFiles(dir string, maxAge time.Duration, db *sqlitedb.DB) {
 	now := time.Now()
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -251,10 +275,20 @@ func cleanupOldFiles(dir string, maxAge time.Duration, statsDB *sqlitedb.DB) {
 		if now.Sub(info.ModTime()) > maxAge {
 			if removeErr := os.Remove(path); removeErr != nil {
 				logrus.Errorf("failed to remove file %s: %v", path, removeErr)
-				statsDB.IncrementEntry("cleanup_errors")
+				db.IncrementEntry("cleanup_errors")
 			} else {
 				logrus.Infof("removed old file: %s", path)
-				statsDB.IncrementEntry("cleanup_files_removed")
+				msg := Message{
+					Source:   "system",
+					Category: "cleanup",
+					Message:  fmt.Sprintf("removed old file: %s", filepath.Base(path)),
+				}
+
+				if err := addEvent(db, msg); err != nil {
+					logrus.Errorf("failed to log cleanup event: %v", err)
+				}
+
+				db.IncrementEntry("cleanup_files_removed")
 			}
 		} else {
 			logrus.Debugf("file %s is not old enough to delete", path)

@@ -28,3 +28,20 @@ func (s *DB) GetEventsCategories() ([]string, error) {
 
 	return eventCategories, nil
 }
+
+func (s *DB) DeleteOldEvents() (int, error) {
+	// delete all events older than 30 days
+	result, err := s.Conn.Exec("DELETE FROM events WHERE added < datetime('now', '-30 days')")
+	if err != nil {
+		logrus.Errorf("Failed to delete old events: %v", err)
+		return 0, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logrus.Errorf("Failed to get rows affected after deleting old events: %v", err)
+		return 0, err
+	}
+
+	return int(rowsAffected), nil
+}
