@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rogierlommers/home/internal/config"
 	"github.com/rogierlommers/home/internal/mailer"
 	"github.com/rogierlommers/home/internal/sqlitedb"
 
 	"github.com/sirupsen/logrus"
 )
+
+const eventsToRetrieve = 1000
 
 // curl -X POST "https://home.lommers.org/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant", "label": "badkamer-boven","message": "hihi", "category": "sensor"}'
 // curl -X POST "http://localhost:3000/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant", "label": "badkamer-boven","message": "hihi", "category": "sensor"}'
@@ -22,7 +23,6 @@ import (
 type Message struct {
 	ID       int       `json:"id,omitempty"`
 	Source   string    `json:"source"`
-	Label    string    `json:"label"`
 	Message  string    `json:"message"`
 	Category string    `json:"category"`
 	Added    time.Time `json:"added"`
@@ -76,18 +76,12 @@ func eventsIncomingMessage(m *mailer.Mailer, db *sqlitedb.DB) gin.HandlerFunc {
 	}
 }
 
-func serveEventsHTML(cfg config.AppConfig) gin.HandlerFunc {
+func serveEventsHTML() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !isAuthenticated(c) {
 			c.Redirect(302, "/login")
 			return
 		}
-
-		// get potential filters
-		categoryFilter := c.Query("category")
-		labelFilter := c.Query("label")
-		_ = categoryFilter
-		_ = labelFilter
 
 		// Read the template file from the embedded FS
 		htmlBytes, err := staticFS.ReadFile("static_html/events.html")
@@ -105,13 +99,8 @@ func serveEventsHTML(cfg config.AppConfig) gin.HandlerFunc {
 			return
 		}
 
-		// Example data to pass to the template
-		data := struct{ RetentionPeriod int }{
-			RetentionPeriod: cfg.FileCleanUpInDys,
-		}
-
 		var buf bytes.Buffer
-		if err := tmpl.Execute(&buf, data); err != nil {
+		if err := tmpl.Execute(&buf, nil); err != nil {
 			logrus.Errorf("Error executing template: %v", err)
 			c.String(500, "Failed to render file storage page")
 			return
@@ -124,22 +113,28 @@ func serveEventsHTML(cfg config.AppConfig) gin.HandlerFunc {
 
 func addEvent(db *sqlitedb.DB, msg Message) error {
 	_, err := db.Conn.Exec(`
-		INSERT INTO events (source, label, message, category)
-		VALUES (?, ?, ?, ?)
-	`, msg.Source, msg.Label, msg.Message, msg.Category)
+		INSERT INTO events (source, message, category)
+		VALUES (?, ?, ?)
+	`, msg.Source, msg.Message, msg.Category)
 	if err != nil {
 		return fmt.Errorf("failed to insert event: %v", err)
 	}
 	return nil
 }
 
-func getEvents(db *sqlitedb.DB, number int) []Message {
-	rows, err := db.Conn.Query(`
-		SELECT id, label, message, category, added, source
-		FROM events
-		ORDER BY id DESC
-		LIMIT ?
-	`, number)
+func getEvents(db *sqlitedb.DB, number int, categoryFilter string) []Message {
+	query := `SELECT id, message, category, added, source FROM events WHERE 1=1`
+	args := []any{}
+
+	if categoryFilter != "" {
+		query += ` AND category = ?`
+		args = append(args, categoryFilter)
+	}
+
+	query += ` ORDER BY id DESC LIMIT ?`
+	args = append(args, number)
+
+	rows, err := db.Conn.Query(query, args...)
 	if err != nil {
 		logrus.Errorf("failed to query events: %v", err)
 		return nil
@@ -149,7 +144,7 @@ func getEvents(db *sqlitedb.DB, number int) []Message {
 	var events []Message
 	for rows.Next() {
 		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.Label, &msg.Message, &msg.Category, &msg.Added, &msg.Source); err != nil {
+		if err := rows.Scan(&msg.ID, &msg.Message, &msg.Category, &msg.Added, &msg.Source); err != nil {
 			logrus.Errorf("failed to scan event row: %v", err)
 			continue
 		}
@@ -179,24 +174,6 @@ func displayEventsCategories(db *sqlitedb.DB) gin.HandlerFunc {
 	}
 }
 
-func displayEventsLabels(db *sqlitedb.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if !isAuthenticated(c) {
-			c.String(401, "Unauthorized")
-			return
-		}
-
-		labels, err := db.GetEventsLabels()
-		if err != nil {
-			logrus.Errorf("Failed to get labels: %v", err)
-			c.String(500, "Failed to retrieve labels")
-			return
-		}
-
-		c.IndentedJSON(200, labels)
-	}
-}
-
 func displayEvents(db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !isAuthenticated(c) {
@@ -204,7 +181,11 @@ func displayEvents(db *sqlitedb.DB) gin.HandlerFunc {
 			return
 		}
 
-		events := getEvents(db, 100)
+		// get potential filter
+		categoryFilter := c.Query("category")
+		logrus.Debugf("category filter: %s", categoryFilter)
+
+		events := getEvents(db, eventsToRetrieve, categoryFilter)
 		c.IndentedJSON(200, events)
 	}
 }

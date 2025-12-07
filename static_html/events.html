@@ -80,18 +80,6 @@
             font-weight: bold;
             text-decoration: underline;
         }
-
-        .filters-container {
-            display: flex;
-            gap: 40px;
-            margin-top: 2em;
-            flex-wrap: wrap;
-        }
-
-        .filter-section {
-            flex: 1;
-            min-width: 300px;
-        }
     </style>
 </head>
 
@@ -107,19 +95,10 @@
                 <a href="notify">notify</a> / <a href="storage">storage</a> / <a href="/events">events</a>
             </h4>
 
-            <div class="filters-container">
-                <div class="filter-section">
-                    <h4>Filter by Category</h4>
-                    <div id="categoryFilterLinks" class="filter-links">
-                        <p>Loading categories...</p>
-                    </div>
-                </div>
-
-                <div class="filter-section">
-                    <h4>Filter by Label</h4>
-                    <div id="labelFilterLinks" class="filter-links">
-                        <p>Loading labels...</p>
-                    </div>
+            <div style="margin-top: 2em;">
+                <h4>filter by category</h4>
+                <div id="categoryFilterLinks" class="filter-links">
+                    <p>Loading categories...</p>
                 </div>
             </div>
 
@@ -134,15 +113,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            
             const categoryLinksContainer = document.getElementById('categoryFilterLinks');
-            const labelLinksContainer = document.getElementById('labelFilterLinks');
             const eventsContainer = document.getElementById('eventsTableContainer');
 
-            // Track active filters
-            let activeFilters = {
-                category: '',
-                label: ''
-            };
+            // Track active category filter
+            let activeCategory = '';
 
             // Helper function to calculate relative time
             function timeAgo(dateString) {
@@ -170,16 +146,16 @@
 
             // Function to fetch and display events
             function loadEvents() {
+                
                 const params = new URLSearchParams();
-                if (activeFilters.category) {
-                    params.append('category', activeFilters.category);
-                }
-                if (activeFilters.label) {
-                    params.append('label', activeFilters.label);
+                if (activeCategory) {
+                    params.append('category', activeCategory);
                 }
 
+                const url = `/api/events?${params.toString()}`;
+
                 eventsContainer.innerHTML = '<p>Loading events...</p>';
-                fetch(`/api/events?${params.toString()}`)
+                fetch(url)
                     .then(response => {
                         if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                         return response.json();
@@ -196,7 +172,6 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Source</th>
-                                        <th>Label</th>
                                         <th>Message</th>
                                         <th>Category</th>
                                         <th>Added</th>
@@ -209,7 +184,6 @@
                                 <tr>
                                     <td>${event.id}</td>
                                     <td>${event.source || '-'}</td>
-                                    <td>${event.label || '-'}</td>
                                     <td>${event.message || '-'}</td>
                                     <td>${event.category || '-'}</td>
                                     <td>${timeAgo(event.added)}</td>
@@ -227,12 +201,14 @@
 
             // Function to fetch and display categories as links
             function loadCategories() {
+                
                 fetch('/api/events/categories')
                     .then(response => {
                         if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                         return response.json();
                     })
                     .then(categories => {
+                        
                         if (!categories || categories.length === 0) {
                             categoryLinksContainer.innerHTML = '<p>No categories found.</p>';
                             return;
@@ -250,33 +226,9 @@
                     });
             }
 
-            // Function to fetch and display labels as links
-            function loadLabels() {
-                fetch('/api/events/labels')
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-                        return response.json();
-                    })
-                    .then(labels => {
-                        if (!labels || labels.length === 0) {
-                            labelLinksContainer.innerHTML = '<p>No labels found.</p>';
-                            return;
-                        }
-
-                        let linksHTML = '<a href="#" class="active" data-label="">All</a>';
-                        labels.forEach(labelName => {
-                            linksHTML += `<a href="#" data-label="${labelName}">${labelName}</a>`;
-                        });
-                        labelLinksContainer.innerHTML = linksHTML;
-                    })
-                    .catch(error => {
-                        console.error('Error fetching labels:', error);
-                        labelLinksContainer.innerHTML = '<p style="color: red;">Error loading labels.</p>';
-                    });
-            }
-
             // Handle clicks on category links
             categoryLinksContainer.addEventListener('click', function (e) {
+
                 if (e.target.tagName === 'A') {
                     e.preventDefault();
 
@@ -285,29 +237,13 @@
                     e.target.classList.add('active');
 
                     // Update active filter
-                    activeFilters.category = e.target.dataset.category;
-                    loadEvents();
-                }
-            });
-
-            // Handle clicks on label links
-            labelLinksContainer.addEventListener('click', function (e) {
-                if (e.target.tagName === 'A') {
-                    e.preventDefault();
-
-                    // Update active class
-                    labelLinksContainer.querySelectorAll('a').forEach(a => a.classList.remove('active'));
-                    e.target.classList.add('active');
-
-                    // Update active filter
-                    activeFilters.label = e.target.dataset.label;
+                    activeCategory = e.target.dataset.category;
                     loadEvents();
                 }
             });
 
             // Initial load
             loadCategories();
-            loadLabels();
             loadEvents();
         });
     </script>

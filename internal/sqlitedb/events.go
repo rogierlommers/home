@@ -28,30 +28,3 @@ func (s *DB) GetEventsCategories() ([]string, error) {
 
 	return eventCategories, nil
 }
-
-func (s *DB) GetEventsLabels() ([]string, error) {
-	var eventLabels []string
-	query := "SELECT DISTINCT label AS label_name FROM events WHERE label IS NOT NULL AND label != ''"
-
-	rows, err := s.Conn.Query(query)
-	if err != nil {
-		logrus.Errorf("Failed to query event labels: %v", err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var c string
-		if err := rows.Scan(&c); err != nil {
-			logrus.Errorf("Failed to scan label row: %v", err)
-			return nil, err
-		}
-		eventLabels = append(eventLabels, c)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return eventLabels, nil
-}

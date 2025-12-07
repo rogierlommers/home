@@ -44,7 +44,6 @@ func InitDatabase(cfg config.AppConfig) *DB {
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT,
-            label TEXT NOT NULL,
             message TEXT NOT NULL,
             category TEXT,
             added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -52,9 +51,6 @@ func InitDatabase(cfg config.AppConfig) *DB {
 
         CREATE INDEX IF NOT EXISTS idx_ha_events_categories
         ON events (category);
-
-        CREATE INDEX IF NOT EXISTS idx_ha_events_labels
-        ON events (label);
 
         `)
 
