@@ -83,6 +83,12 @@ func serveEventsHTML(cfg config.AppConfig) gin.HandlerFunc {
 			return
 		}
 
+		// get potential filters
+		categoryFilter := c.Query("category")
+		labelFilter := c.Query("label")
+		_ = categoryFilter
+		_ = labelFilter
+
 		// Read the template file from the embedded FS
 		htmlBytes, err := staticFS.ReadFile("static_html/events.html")
 		if err != nil {

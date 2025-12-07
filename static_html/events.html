@@ -70,6 +70,28 @@
         tr:hover {
             background-color: #f1f1f1;
         }
+
+        .filter-links a {
+            margin-right: 15px;
+            text-decoration: none;
+        }
+
+        .filter-links a.active {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 2em;
+            flex-wrap: wrap;
+        }
+
+        .filter-section {
+            flex: 1;
+            min-width: 300px;
+        }
     </style>
 </head>
 
@@ -85,13 +107,21 @@
                 <a href="notify">notify</a> / <a href="storage">storage</a> / <a href="/events">events</a>
             </h4>
 
-            <form id="categoryFilterForm" style="margin-top: 2em;">
-                <h4>Filter by Category</h4>
-                <div id="categoryCheckboxes">
-                    <p>Loading categories...</p>
+            <div class="filters-container">
+                <div class="filter-section">
+                    <h4>Filter by Category</h4>
+                    <div id="categoryFilterLinks" class="filter-links">
+                        <p>Loading categories...</p>
+                    </div>
                 </div>
-                <button type="submit" class="button" style="margin-top: 1em;">Filter</button>
-            </form>
+
+                <div class="filter-section">
+                    <h4>Filter by Label</h4>
+                    <div id="labelFilterLinks" class="filter-links">
+                        <p>Loading labels...</p>
+                    </div>
+                </div>
+            </div>
 
             <h4 style="margin-top: 2em;">Events</h4>
             <div id="eventsTableContainer">
@@ -104,9 +134,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const checkboxContainer = document.getElementById('categoryCheckboxes');
+            const categoryLinksContainer = document.getElementById('categoryFilterLinks');
+            const labelLinksContainer = document.getElementById('labelFilterLinks');
             const eventsContainer = document.getElementById('eventsTableContainer');
-            const filterForm = document.getElementById('categoryFilterForm');
+
+            // Track active filters
+            let activeFilters = {
+                category: '',
+                label: ''
+            };
 
             // Helper function to calculate relative time
             function timeAgo(dateString) {
@@ -133,9 +169,17 @@
             }
 
             // Function to fetch and display events
-            function loadEvents(queryString = '') {
+            function loadEvents() {
+                const params = new URLSearchParams();
+                if (activeFilters.category) {
+                    params.append('category', activeFilters.category);
+                }
+                if (activeFilters.label) {
+                    params.append('label', activeFilters.label);
+                }
+
                 eventsContainer.innerHTML = '<p>Loading events...</p>';
-                fetch(`/api/events?${queryString}`)
+                fetch(`/api/events?${params.toString()}`)
                     .then(response => {
                         if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
                         return response.json();
@@ -181,7 +225,7 @@
                     });
             }
 
-            // Function to fetch and display categories
+            // Function to fetch and display categories as links
             function loadCategories() {
                 fetch('/api/events/categories')
                     .then(response => {
@@ -190,41 +234,80 @@
                     })
                     .then(categories => {
                         if (!categories || categories.length === 0) {
-                            checkboxContainer.innerHTML = '<p>No categories found.</p>';
+                            categoryLinksContainer.innerHTML = '<p>No categories found.</p>';
                             return;
                         }
 
-                        let checkboxesHTML = '';
+                        let linksHTML = '<a href="#" class="active" data-category="">All</a>';
                         categories.forEach(categoryName => {
-                            const categoryId = `cat-${categoryName.replace(/[^a-zA-Z0-9]/g, '-')}`;
-                            checkboxesHTML += `
-                                <div>
-                                    <input type="checkbox" id="${categoryId}" name="category" value="${categoryName}">
-                                    <label class="label-inline" for="${categoryId}">${categoryName}</label>
-                                </div>
-                            `;
+                            linksHTML += `<a href="#" data-category="${categoryName}">${categoryName}</a>`;
                         });
-                        checkboxContainer.innerHTML = checkboxesHTML;
+                        categoryLinksContainer.innerHTML = linksHTML;
                     })
                     .catch(error => {
                         console.error('Error fetching categories:', error);
-                        checkboxContainer.innerHTML = '<p style="color: red;">Error loading categories.</p>';
+                        categoryLinksContainer.innerHTML = '<p style="color: red;">Error loading categories.</p>';
                     });
             }
 
-            // Handle form submission for filtering
-            filterForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const checkedBoxes = document.querySelectorAll('#categoryCheckboxes input[name="category"]:checked');
-                const params = new URLSearchParams();
-                checkedBoxes.forEach(checkbox => {
-                    params.append('category', checkbox.value);
-                });
-                loadEvents(params.toString());
+            // Function to fetch and display labels as links
+            function loadLabels() {
+                fetch('/api/events/labels')
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                        return response.json();
+                    })
+                    .then(labels => {
+                        if (!labels || labels.length === 0) {
+                            labelLinksContainer.innerHTML = '<p>No labels found.</p>';
+                            return;
+                        }
+
+                        let linksHTML = '<a href="#" class="active" data-label="">All</a>';
+                        labels.forEach(labelName => {
+                            linksHTML += `<a href="#" data-label="${labelName}">${labelName}</a>`;
+                        });
+                        labelLinksContainer.innerHTML = linksHTML;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching labels:', error);
+                        labelLinksContainer.innerHTML = '<p style="color: red;">Error loading labels.</p>';
+                    });
+            }
+
+            // Handle clicks on category links
+            categoryLinksContainer.addEventListener('click', function (e) {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+
+                    // Update active class
+                    categoryLinksContainer.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    // Update active filter
+                    activeFilters.category = e.target.dataset.category;
+                    loadEvents();
+                }
+            });
+
+            // Handle clicks on label links
+            labelLinksContainer.addEventListener('click', function (e) {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+
+                    // Update active class
+                    labelLinksContainer.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    // Update active filter
+                    activeFilters.label = e.target.dataset.label;
+                    loadEvents();
+                }
             });
 
             // Initial load
             loadCategories();
+            loadLabels();
             loadEvents();
         });
     </script>
