@@ -17,8 +17,8 @@ import (
 
 const eventsToRetrieve = 1000
 
-// curl -X POST "https://home.lommers.org/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant", "label": "badkamer-boven","message": "hihi", "category": "sensor"}'
-// curl -X POST "http://localhost:3000/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant", "label": "badkamer-boven","message": "hihi", "category": "sensor"}'
+// curl -X POST "https://home.lommers.org/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant","message": "hihi", "category": "sensor"}'
+// curl -X POST "http://localhost:3000/api/events" -H "Content-Type: application/json" -d '{"source":"home-assistant","message": "hihi", "category": "sensor"}'
 
 type Message struct {
 	ID       int       `json:"id,omitempty"`
