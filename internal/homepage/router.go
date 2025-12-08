@@ -46,7 +46,7 @@ func Add(router *gin.Engine, cfg config.AppConfig, mailer *mailer.Mailer, static
 
 	// events
 	router.GET("/events", serveEventsHTML())
-	router.POST("/api/events", eventsIncomingMessage(mailer, db))
+	router.POST("/api/events", eventsIncomingMessage(mailer, db, cfg.XHomeAPIKey))
 	router.GET("/api/events", displayEvents(db))
 	router.GET("/api/events/categories", displayEventsCategories(db))
 

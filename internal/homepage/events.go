@@ -46,8 +46,14 @@ func dumpRequestBody(c *gin.Context) error {
 }
 
 // documentation here: https://www.home-assistant.io/integrations/rest_command
-func eventsIncomingMessage(m *mailer.Mailer, db *sqlitedb.DB) gin.HandlerFunc {
+func eventsIncomingMessage(m *mailer.Mailer, db *sqlitedb.DB, XAPIkey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		apiKey := c.GetHeader("X-HOME-API-KEY")
+		if apiKey != XAPIkey {
+			c.String(401, "Unauthorized")
+			return
+		}
 
 		// first dump body
 		if err := dumpRequestBody(c); err != nil {
