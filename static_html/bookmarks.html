@@ -161,14 +161,16 @@
           );
         }
 
-        // Generate unique category names from items using the mapping
-        const categories = [
-          ...new Set(
-            items
-              .map(item => categoryIdToName[item.category_id])
-              .filter(Boolean)
-          )
-        ];
+        // Generate unique categories from items and sort by ID
+        const categoryMap = new Map();
+        items.forEach(item => {
+          if (item.category_id && categoryIdToName[item.category_id]) {
+            categoryMap.set(item.category_id, categoryIdToName[item.category_id]);
+          }
+        });
+        const categories = Array.from(categoryMap.entries())
+          .sort((a, b) => a[0] - b[0]) // Sort by category ID
+          .map(entry => entry[1]); // Extract category names
 
         // Group items by category name
         const grouped = {};
@@ -178,6 +180,11 @@
           if (grouped[catName]) {
             grouped[catName].push(item);
           }
+        });
+
+        // Sort items by priority within each category (higher priority first)
+        categories.forEach(cat => {
+          grouped[cat].sort((a, b) => (b.priority || 0) - (a.priority || 0));
         });
 
         // Find max number of items in any category for row count

@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# https://github.com/coleifer/sqlite-web
+#
 
 # debug output
 echo "GUI will be accessible at: http://localhost:8081"
@@ -11,5 +14,5 @@ echo "Using database file: ${DBFILE}"
 docker run -it --rm \
     -p 8081:8080 \
     -v ${PWD}:/data \
-    -e SQLITE_DATABASE=home-service.db \
-    ghcr.io/coleifer/sqlite-web:latest
+    ghcr.io/coleifer/sqlite-web:latest \
+    home-service.db

@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="https://milligram.io/styles/main.css" />
     <style>
         .edit-table {
-            width: auto;
-            margin: 0 auto;
+            width: 100%;
+            margin: 0;
             table-layout: auto;
             border-collapse: collapse;
             max-width: none;
@@ -56,20 +56,6 @@
             white-space: nowrap;
         }
 
-        .priority-arrows {
-            display: flex;
-            flex-direction: row;
-            gap: 2px;
-        }
-
-        .priority-arrows button {
-            padding: 2px 6px;
-            font-size: 0.75em;
-            line-height: 1;
-            min-width: 24px;
-            margin: 0;
-        }
-
         .action-buttons {
             display: flex;
             gap: 2px;
@@ -77,9 +63,9 @@
         }
 
         #editBookmarksTable {
-            width: auto;
+            width: 100%;
             max-width: none;
-            margin: 0 auto;
+            margin: 0;
             overflow-x: auto;
         }
 
@@ -135,11 +121,8 @@
                         <button type="submit" class="button">Add</button>
                     </div>
                 </div>
-                <span id="addBookmarkStatus" style="margin-top:8px; display:inline-block;"></span>
             </form>
 
-            <h4 style="margin-top: 2em;">Existing bookmarks</h4>
-            <div id="editBookmarksStatus" style="margin-bottom:1em;"></div>
             <div id="editBookmarksTable">Loading bookmarks...</div>
 
         </section>
@@ -165,77 +148,83 @@
                 document.getElementById('editBookmarksTable').textContent = 'No bookmarks found.';
                 return;
             }
-            let html = `<table class="edit-table">
-                <thead>
-                    <tr>
-                        <th>Priority</th>
-                        <th>Title</th>
-                        <th>URL</th>
-                        <th>Category</th>
-                        <th>Hide</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-            `;
-            items.forEach((item, index) => {
-                // Create category dropdown options
-                let categoryOptions = '';
-                Object.entries(categoryIdToName).forEach(([id, name]) => {
-                    const selected = item.category_id == id ? 'selected' : '';
-                    categoryOptions += `<option value="${id}" ${selected}>${name}</option>`;
-                });
 
-                html += `
-                    <tr data-id="${item.id}" data-index="${index}">
-                        <td>
-                            <div class="priority-arrows">
-                                <button class="button button-outline move-up-btn" type="button" ${index === 0 ? 'disabled' : ''}>↑</button>
-                                <button class="button button-outline move-down-btn" type="button" ${index === items.length - 1 ? 'disabled' : ''}>↓</button>
-                            </div>
-                        </td>
-                        <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
-                        <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
-                        <td>
-                            <select class="edit-category">
-                                ${categoryOptions}
-                            </select>
-                        </td>
-                        <td style="text-align:center;">
-                            <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="button button-outline save-btn" type="button">Save</button>
-                                <button class="button button-outline delete-btn" type="button" style="color:#d9534f;">Del</button>
-                            </div>
-                        </td>
-                    </tr>
+            // Group items by category ID and sort by category ID
+            const categoryMap = new Map();
+            items.forEach(item => {
+                if (!categoryMap.has(item.category_id)) {
+                    categoryMap.set(item.category_id, []);
+                }
+                categoryMap.get(item.category_id).push(item);
+            });
+
+            // Sort categories by ID
+            const sortedCategories = Array.from(categoryMap.keys()).sort((a, b) => a - b);
+
+            // Sort items within each category by priority (higher first)
+            sortedCategories.forEach(categoryId => {
+                categoryMap.get(categoryId).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+            });
+
+            let html = '';
+            let globalIndex = 0;
+
+            sortedCategories.forEach(categoryId => {
+                const categoryItems = categoryMap.get(categoryId);
+                const categoryName = categoryIdToName[categoryId] || `Category ${categoryId}`;
+
+                html += `<h3 style="margin-top: 1.5em; margin-bottom: 0.5em; color: #606c76;">${categoryName}</h3>`;
+                html += `<table class="edit-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Priority</th>
+                            <th>Title</th>
+                            <th>URL</th>
+                            <th>Category</th>
+                            <th>Hide</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                 `;
+
+                categoryItems.forEach((item, localIndex) => {
+                    // Create category dropdown options
+                    let categoryOptions = '';
+                    Object.entries(categoryIdToName).forEach(([id, name]) => {
+                        const selected = item.category_id == id ? 'selected' : '';
+                        categoryOptions += `<option value="${id}" ${selected}>${name}</option>`;
+                    });
+
+                    html += `
+                        <tr data-id="${item.id}" data-index="${globalIndex}">
+                            <td>${item.id}</td>
+                            <td><input type="number" value="${item.priority || 0}" class="edit-priority" style="width: 60px;" /></td>
+                            <td><input type="text" value="${item.title || ''}" class="edit-title" /></td>
+                            <td><input type="url" value="${item.arg || ''}" class="edit-arg" /></td>
+                            <td>
+                                <select class="edit-category">
+                                    ${categoryOptions}
+                                </select>
+                            </td>
+                            <td style="text-align:center;">
+                                <input type="checkbox" class="edit-hide" ${item.hide_in_gui ? 'checked' : ''} />
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="button button-outline save-btn" type="button">Save</button>
+                                    <button class="button button-outline delete-btn" type="button" style="color:#d9534f;">Del</button>
+                                    <span class="row-status" style="margin-left: 8px; font-size: 0.85em;"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    globalIndex++;
+                });
+                html += '</tbody></table>';
             });
-            html += '</tbody></table>';
             document.getElementById('editBookmarksTable').innerHTML = html;
-
-            // Add event listeners for Priority arrows
-            document.querySelectorAll('.move-up-btn').forEach(btn => {
-                btn.onclick = function () {
-                    const row = btn.closest('tr');
-                    const index = parseInt(row.getAttribute('data-index'));
-                    if (index > 0) {
-                        moveBookmarkPriority(index, 'up');
-                    }
-                };
-            });
-
-            document.querySelectorAll('.move-down-btn').forEach(btn => {
-                btn.onclick = function () {
-                    const row = btn.closest('tr');
-                    const index = parseInt(row.getAttribute('data-index'));
-                    if (index < allBookmarks.length - 1) {
-                        moveBookmarkPriority(index, 'down');
-                    }
-                };
-            });
 
             // Add event listeners for Save and Delete
             document.querySelectorAll('.save-btn').forEach(btn => {
@@ -248,57 +237,24 @@
                 btn.onclick = function () {
                     const row = btn.closest('tr');
                     const id = row.getAttribute('data-id');
+                    const statusSpan = row.querySelector('.row-status');
                     if (confirm('Are you sure you want to delete this bookmark?')) {
                         fetch(`/api/bookmarks/${id}`, {
                             method: 'DELETE'
                         })
                             .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                             .then(() => {
-                                document.getElementById('editBookmarksStatus').textContent = 'Bookmark deleted!';
-                                document.getElementById('editBookmarksStatus').style.color = 'green';
+                                statusSpan.textContent = 'Deleted!';
+                                statusSpan.style.color = 'green';
                                 loadEditBookmarks();
                             })
                             .catch(() => {
-                                document.getElementById('editBookmarksStatus').textContent = 'Failed to delete bookmark.';
-                                document.getElementById('editBookmarksStatus').style.color = 'red';
+                                statusSpan.textContent = 'Failed to delete';
+                                statusSpan.style.color = 'red';
                             });
                     }
                 };
             });
-        }
-
-        function moveBookmarkPriority(index, direction) {
-            const bookmark = allBookmarks[index];
-            const currentPriority = bookmark.priority || 0;
-            const newPriority = direction === 'up' ? currentPriority + 1 : currentPriority - 1;
-
-            // dump full request
-            console.debug(`Changing priority of bookmark ID ${bookmark.id} from ${currentPriority} to ${newPriority}`);
-            console.debug(bookmark)
-
-            // Update the single bookmark with new priority
-            fetch(`/api/bookmarks/${bookmark.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: bookmark.title,
-                    arg: bookmark.arg,
-                    category_id: bookmark.category_id,
-                    hide_in_gui: bookmark.hide_in_gui,
-                    priority: newPriority
-                })
-            })
-                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
-                .then(() => {
-                    document.getElementById('editBookmarksStatus').textContent = 'Priority updated!';
-                    document.getElementById('editBookmarksStatus').style.color = 'green';
-                    // Reload to get the updated order from the server
-                    loadEditBookmarks();
-                })
-                .catch(() => {
-                    document.getElementById('editBookmarksStatus').textContent = 'Failed to update priority.';
-                    document.getElementById('editBookmarksStatus').style.color = 'red';
-                });
         }
 
         function saveBookmarkRow(row) {
@@ -307,8 +263,10 @@
             const arg = row.querySelector('.edit-arg').value;
             const category_id = parseInt(row.querySelector('.edit-category').value, 10);
             const hide_in_gui = row.querySelector('.edit-hide').checked;
+            const priority = parseInt(row.querySelector('.edit-priority').value, 10) || 0;
+            const statusSpan = row.querySelector('.row-status');
 
-            console.log("Updating bookmark:", { id, title, arg, category_id, hide_in_gui });
+            console.log("Updating bookmark:", { id, title, arg, category_id, hide_in_gui, priority });
             fetch(`/api/bookmarks/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -316,18 +274,18 @@
                     title,
                     arg,
                     category_id,
-                    hide_in_gui
+                    hide_in_gui,
+                    priority
                 })
             })
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(() => {
-                    document.getElementById('editBookmarksStatus').textContent = 'Bookmark updated!';
-                    document.getElementById('editBookmarksStatus').style.color = 'green';
-                    loadEditBookmarks();
+                    statusSpan.textContent = 'Saved!';
+                    statusSpan.style.color = 'green';
                 })
                 .catch(() => {
-                    document.getElementById('editBookmarksStatus').textContent = 'Failed to update bookmark.';
-                    document.getElementById('editBookmarksStatus').style.color = 'red';
+                    statusSpan.textContent = 'Failed to update';
+                    statusSpan.style.color = 'red';
                 });
         }
 

@@ -157,7 +157,7 @@ func editBookmark(db *sqlitedb.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// display incoming body
-		logrus.Debugf("Edit bookmark payload: %s", c.Request.Body)
+		logrus.Debugf("Edit bookmark url: %s, payload: %s", c.Request.RequestURI, c.Request.Body)
 
 		id := convertToInt(c.Param("id"))
 
