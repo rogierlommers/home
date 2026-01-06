@@ -68,3 +68,42 @@ func TestGetBaseURL(t *testing.T) {
 		}
 	}
 }
+
+func TestGetTitleFromURL(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "https://example.com/path/to/page",
+			expected: "example.com/path/to/page",
+		},
+		{
+			input:    "http://sub.domain.com/",
+			expected: "sub.domain.com/",
+		},
+		{
+			input:    "https://github.com/user/repo",
+			expected: "github.com/user/repo",
+		},
+		{
+			input:    "https://jeroen.nl/",
+			expected: "jeroen.nl/",
+		},
+		{
+			input:    "https://www.google.com/search?q=jewel+singer&ie=UTF-8&oe=UTF-8&hl=nl-nl&client=safari#ebo=0",
+			expected: "Google: jewel singer",
+		},
+		{
+			input:    "https://youtu.be/dQw4w9WgXcQ",
+			expected: "YouTube Video",
+		},
+	}
+
+	for _, tt := range tests {
+		got := getTitleFromURL(tt.input)
+		if got != tt.expected {
+			t.Errorf("getTitleFromURL(%q) = %q; want %q", tt.input, got, tt.expected)
+		}
+	}
+}

@@ -69,8 +69,11 @@ func (g *Greedy) addURL(c *gin.Context) {
 		return
 	}
 
+	title := getTitleFromURL(newURL)
+
 	greedyURL := GreedyURL{
 		URL:   newURL,
+		Title: title,
 		Added: time.Now(),
 	}
 
@@ -283,4 +286,33 @@ func (g Greedy) AcceptedResponse(c *gin.Context) {
 	// serve
 	c.Header("Content-Type", "text/html")
 	c.String(200, output)
+}
+
+func getTitleFromURL(newURL string) string {
+	u, err := url.Parse(newURL)
+	if err != nil {
+		return newURL
+	}
+
+	logrus.Infof("host: %s, path: %s", u.Host, u.Path)
+
+	switch u.Host {
+
+	// for youtube, return fixed title
+	case "youtu.be", "www.youtube.com":
+		return "YouTube Video"
+
+	// for google search urls, extract query
+	case "www.google.com":
+		q := u.Query().Get("q")
+		if q != "" {
+			return fmt.Sprintf("Google: %s", q)
+		}
+
+	// default
+	default:
+		return fmt.Sprintf("%s%s", u.Host, u.Path)
+	}
+
+	return u.Host
 }
