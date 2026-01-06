@@ -47,6 +47,7 @@ func NewGreedy(router *gin.Engine, cfg config.AppConfig, db *sqlitedb.DB) (Greed
 	router.GET("/api/greedy/add", g.addURL)
 	router.GET("/api/greedy/rss", g.displayRSS)
 	router.GET("/api/greedy/accepted", g.AcceptedResponse)
+	router.GET("/api/greedy/trigger-scraping", g.triggerScraping)
 
 	// if not exist, create table
 	if err := g.createTable(); err != nil {
@@ -294,7 +295,7 @@ func getTitleFromURL(newURL string) string {
 		return newURL
 	}
 
-	logrus.Infof("host: %s, path: %s", u.Host, u.Path)
+	logrus.Debugf("host: %s, path: %s", u.Host, u.Path)
 
 	switch u.Host {
 
