@@ -122,6 +122,7 @@
                     </div>
                 </div>
             </form>
+            <div id="addBookmarkStatus" style="margin-bottom:1em;"></div>
 
             <div id="editBookmarksTable">Loading bookmarks...</div>
 
@@ -348,7 +349,13 @@
                     hide_in_gui: false
                 })
             })
-                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(res => {
+                    if (res.ok) return res.json();
+                    // Try to get error details from the response
+                    return res.text().then(text => {
+                        throw { status: res.status, statusText: res.statusText, body: text };
+                    });
+                })
                 .then(data => {
                     document.getElementById('addBookmarkStatus').textContent = 'Bookmark added!';
                     document.getElementById('addBookmarkStatus').style.color = 'green';
@@ -356,9 +363,16 @@
                     loadCategoriesDropdown();
                     loadEditBookmarks();
                 })
-                .catch(() => {
-                    document.getElementById('addBookmarkStatus').textContent = 'Failed to add bookmark.';
+                .catch((err) => {
+                    let msg = 'Failed to add bookmark.';
+                    if (err && err.body) {
+                        msg += ' ' + err.body;
+                    } else if (err && err.statusText) {
+                        msg += ' ' + err.statusText;
+                    }
+                    document.getElementById('addBookmarkStatus').textContent = msg;
                     document.getElementById('addBookmarkStatus').style.color = 'red';
+                    console.error('Failed to add bookmark:', err);
                 });
         };
 
