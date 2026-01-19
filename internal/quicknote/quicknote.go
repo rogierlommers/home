@@ -105,13 +105,7 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 			attachments = []string{filepath.Base(fileOnDisk)}
 		}
 
-		if err := m.SendMail(title, targetEmail, htmlContent, attachments); err != nil {
-			logrus.Errorf("Failed to send email: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
-			return
-		}
-
-		// Update statistics and respond
+		// Update statistics and prepare response
 		statsSource := StatSourceNoAttachment
 		responseMessage := fmt.Sprintf("Text note sent (%s)", humanize.Bytes(uint64(len(htmlContent))))
 
@@ -126,6 +120,16 @@ func sendMailHandler(m *mailer.Mailer, cfg config.AppConfig, stats *sqlitedb.DB)
 			logrus.Errorf("Failed to increment stats for %s: %v", statsSource, err)
 		}
 
+		// Send email asynchronously
+		go func() {
+			if err := m.SendMail(title, targetEmail, htmlContent, attachments); err != nil {
+				logrus.Errorf("Failed to send email asynchronously: %v", err)
+			} else {
+				logrus.Infof("Email sent successfully to %s: %s", targetEmail, title)
+			}
+		}()
+
+		// Respond immediately without waiting for email to send
 		c.JSON(http.StatusOK, gin.H{"msg": responseMessage})
 	}
 }
