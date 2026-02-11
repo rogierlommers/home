@@ -149,8 +149,7 @@
           return;
         }
 
-        // Filter out bookmarks where hide_in_gui is true
-        let items = data.items.filter(item => !item.hide_in_gui);
+        let items = data.items;
 
         // Filter items by search term (case-insensitive, matches title, URL)
         if (bookmarkSearchTerm && bookmarkSearchTerm.trim() !== "") {
@@ -159,6 +158,9 @@
             (item.title && item.title.toLowerCase().includes(term)) ||
             (item.arg && item.arg.toLowerCase().includes(term))
           );
+        } else {
+          // Filter out bookmarks where hide_in_gui is true (only when not searching)
+          items = items.filter(item => !item.hide_in_gui);
         }
 
         // Generate unique categories from items and sort by ID
