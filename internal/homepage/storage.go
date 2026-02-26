@@ -115,11 +115,15 @@ func uploadFiles(cfg config.AppConfig, mailer *mailer.Mailer, stats *sqlitedb.DB
 
 			// send mail
 			statsSource = fmt.Sprintf("upload_and_notify_%s", target)
-			if err := mailer.SendMail(subject, target, message, uploaded); err != nil {
-				logrus.Errorf("Failed to send notification email: %v", err)
-			} else {
-				logrus.Info("Notification email sent")
-			}
+
+			// Send email asynchronously
+			go func() {
+				if err := mailer.SendMail(subject, target, message, uploaded); err != nil {
+					logrus.Errorf("Failed to send notification email: %v", err)
+				} else {
+					logrus.Info("Notification email sent")
+				}
+			}()
 		}
 
 		// increase stats
