@@ -82,8 +82,8 @@ func (g *Greedy) addURL(c *gin.Context) {
 		c.IndentedJSON(500, gin.H{"error": err.Error()})
 	}
 
-	// base64 encode the title
-	encoded := base64.StdEncoding.EncodeToString([]byte(greedyURL.URL))
+	// base64 encode the URL in a URL-safe format
+	encoded := encodeAcceptedMessage(greedyURL.URL)
 
 	// redirect with encoded message
 	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/api/greedy/accepted?msg=%s", encoded))
@@ -248,8 +248,16 @@ func getBaseURL(fullURL string) string {
 	return parsedUrl
 }
 
+func encodeAcceptedMessage(message string) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(message))
+}
+
+func decodeAcceptedMessage(message string) ([]byte, error) {
+	return base64.RawURLEncoding.DecodeString(message)
+}
+
 func (g Greedy) AcceptedResponse(c *gin.Context) {
-	decodedMessage, err := base64.StdEncoding.DecodeString(c.Query("msg"))
+	decodedMessage, err := decodeAcceptedMessage(c.Query("msg"))
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

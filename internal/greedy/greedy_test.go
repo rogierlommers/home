@@ -1,6 +1,7 @@
 package greedy
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -105,5 +106,23 @@ func TestGetTitleFromURL(t *testing.T) {
 		if got != tt.expected {
 			t.Errorf("getTitleFromURL(%q) = %q; want %q", tt.input, got, tt.expected)
 		}
+	}
+}
+
+func TestAcceptedMessageEncodingIsURLSafe(t *testing.T) {
+	original := "https://example.com/path?query=a+b/c==&x=1"
+
+	encoded := encodeAcceptedMessage(original)
+	if strings.ContainsAny(encoded, "+/=") {
+		t.Fatalf("encoded value contains non URL-safe base64 characters: %q", encoded)
+	}
+
+	decoded, err := decodeAcceptedMessage(encoded)
+	if err != nil {
+		t.Fatalf("failed to decode encoded value: %v", err)
+	}
+
+	if string(decoded) != original {
+		t.Fatalf("round-trip mismatch: got %q, want %q", string(decoded), original)
 	}
 }
