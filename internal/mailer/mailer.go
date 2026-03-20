@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"fmt"
+	"html"
 	"os"
 	"path"
 	"strconv"
@@ -88,9 +89,14 @@ func (m *Mailer) SendMail(subject string, target string, body string, attachment
 }
 
 func defineBody(s string, b string) string {
+	if strings.Contains(strings.ToLower(b), "<html") || strings.Contains(strings.ToLower(b), "<!doctype") {
+		return b
+	}
 
-	// b = strings.ReplaceAll(b, "\n", "<br/>")
-	return b
+	escaped := html.EscapeString(b)
+	escaped = strings.ReplaceAll(escaped, "\r\n", "\n")
+	escaped = strings.ReplaceAll(escaped, "\r", "\n")
+	return strings.ReplaceAll(escaped, "\n", "<br/>")
 }
 
 func checkIfFileExists(v string) {
