@@ -59,17 +59,23 @@ jobs:
           ls -lhrR .
 
       - name: Login to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
           tags: rogierlommers/home:latest
+
+      - name: Skip push when Docker secrets are unavailable
+        if: ${{ secrets.DOCKERHUB_USERNAME == '' || secrets.DOCKERHUB_TOKEN == '' }}
+        run: echo "Skipping Docker login and push because Docker Hub secrets are not available in this run."
 
   pull-and-run-latest:
     name: "Pull latest image and run"
