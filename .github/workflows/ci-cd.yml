@@ -1,6 +1,6 @@
 # playlist example: https://github.com/playlist-exchange/playlist-exchange/blob/main/.github/workflows/docker-image.yml
 
-name: quick-note
+name: Build and run application
 
 on:
   push:
